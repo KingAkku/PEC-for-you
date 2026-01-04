@@ -1,16 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Access environment variables using Vite's import.meta.env
-// We use a fallback to empty string to prevent crashes during build time,
-// but the app will prompt for keys if they are missing at runtime.
-// Cast import.meta to any to resolve TypeScript error regarding missing 'env' property
-const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || '';
+// Robustly retrieve environment variables in Vite
+// We use (import.meta as any) to avoid TypeScript errors if the types aren't perfectly set up
+const getEnvVar = (key: string) => {
+  if (import.meta && (import.meta as any).env) {
+    return (import.meta as any).env[key] || '';
+  }
+  return '';
+};
+
+const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
+const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
-    'Supabase credentials missing! Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local file.'
+    'Supabase credentials missing! Please check your .env.local file has VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.'
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Initialize Supabase client
+// We use fallback values ('https://placeholder.supabase.co') to prevent the app from crashing 
+// immediately on load if keys are missing. This allows the UI to render and show specific 
+// authentication errors to the user instead of a blank white screen.
+export const supabase = createClient(
+  supabaseUrl || 'https://placeholder.supabase.co',
+  supabaseAnonKey || 'placeholder'
+);
