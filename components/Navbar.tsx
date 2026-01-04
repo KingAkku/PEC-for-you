@@ -46,12 +46,14 @@ const Navbar: React.FC<NavbarProps> = ({
         
         {/* Left: Logo */}
         <div 
-          className="flex items-center space-x-2 cursor-pointer z-10 flex-shrink-0" 
+          className="flex items-center space-x-3 cursor-pointer z-10 flex-shrink-0" 
           onClick={() => onChangeView('home')}
         >
-          <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white font-display text-xl pt-1 shadow-md">
-            P
-          </div>
+          <img 
+            src="/P.svg" 
+            alt="PEC Portal" 
+            className="w-9 h-9 shadow-md rounded-lg object-contain bg-slate-900 p-1"
+          />
           <span className="font-display text-xl text-slate-900 tracking-tight hidden sm:block">PEC Portal</span>
         </div>
 
