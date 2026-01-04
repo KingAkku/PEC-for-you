@@ -9,7 +9,6 @@ import AuthModal from './components/AuthModal';
 import FeedbackModal from './components/FeedbackModal';
 import { User, Club } from './types';
 import { AnimatePresence } from 'framer-motion';
-import { Settings } from 'lucide-react';
 
 const App: React.FC = () => {
   // Start with no user (null) instead of a demo user
@@ -20,17 +19,21 @@ const App: React.FC = () => {
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
+  // Wrapper to handle view changes and scroll reset
+  const handleViewChange = (view: string) => {
+    setCurrentView(view);
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  };
+
   const handleNavigateToClub = (club: Club) => {
     setSelectedClub(club);
-    setCurrentView('club-detail');
-    // Scroll to top
-    window.scrollTo(0, 0);
+    handleViewChange('club-detail');
   };
 
   const renderView = () => {
     switch (currentView) {
       case 'home':
-        return <Home onNavigate={setCurrentView} />;
+        return <Home onNavigate={handleViewChange} />;
       case 'events':
         return <Events user={currentUser} />;
       case 'clubs':
@@ -39,14 +42,14 @@ const App: React.FC = () => {
         return selectedClub ? (
           <ClubDetail 
             club={selectedClub} 
-            onBack={() => setCurrentView('clubs')} 
+            onBack={() => handleViewChange('clubs')} 
             user={currentUser} 
           />
         ) : (
           <Clubs user={currentUser} onViewClub={handleNavigateToClub} />
         );
       default:
-        return <Home onNavigate={setCurrentView} />;
+        return <Home onNavigate={handleViewChange} />;
     }
   };
 
@@ -62,7 +65,7 @@ const App: React.FC = () => {
 
   const handleLogout = () => {
     setCurrentUser(null);
-    setCurrentView('home');
+    handleViewChange('home');
   };
 
   return (
@@ -71,7 +74,7 @@ const App: React.FC = () => {
         currentUser={currentUser} 
         onSwitchUser={setCurrentUser} 
         currentView={currentView}
-        onChangeView={setCurrentView}
+        onChangeView={handleViewChange}
         onLoginClick={handleOpenLogin}
         onSignupClick={handleOpenSignup}
         onLogoutClick={handleLogout}
@@ -99,8 +102,22 @@ const App: React.FC = () => {
       <button 
         onClick={() => setIsFeedbackModalOpen(true)}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform cursor-pointer group"
+        aria-label="Feedback"
       >
-        <Settings size={24} className="group-hover:rotate-90 transition-transform duration-500" />
+        <svg 
+            width="32" 
+            height="32" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="currentColor" 
+            strokeWidth="3" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            className="group-hover:rotate-12 transition-transform duration-500"
+        >
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+        </svg>
       </button>
 
       <Footer />
