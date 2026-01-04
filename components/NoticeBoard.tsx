@@ -1,7 +1,7 @@
 import React from 'react';
 import { MOCK_NOTICES } from '../constants';
 import { Notice } from '../types';
-import { AlertCircle, Calendar, FileText, Zap, Siren } from 'lucide-react';
+import { AlertCircle, Calendar, FileText, Zap } from 'lucide-react';
 
 const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
   const getIcon = () => {
@@ -44,14 +44,15 @@ const NoticeBoard: React.FC = () => {
   return (
     <section className="py-20 px-4 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-end mb-10">
-        <div className="flex items-start gap-4">
-          <div className="p-3 bg-red-50 rounded-xl text-red-600 shadow-sm border border-red-100 mt-1 animate-pulse">
-            <Siren size={32} />
-          </div>
-          <div>
+        <div>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+            </span>
             <h2 className="text-3xl font-display text-slate-900 tracking-tight">Digital Notice Board</h2>
-            <p className="text-slate-500 mt-2">Latest updates, emergency alerts, and scholarship deadlines.</p>
           </div>
+          <p className="text-slate-500 mt-2">Latest updates, emergency alerts, and scholarship deadlines.</p>
         </div>
         <button className="hidden md:block text-blue-600 font-medium hover:underline">View Archived &rarr;</button>
       </div>
