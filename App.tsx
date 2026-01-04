@@ -32,11 +32,18 @@ const App: React.FC = () => {
   useEffect(() => {
     // 1. Check active session on startup
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        await fetchUserProfile(session.user.id, session.user.email);
-      } else {
-        setLoading(false);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (data.session) {
+          await fetchUserProfile(data.session.user.id, data.session.user.email);
+        } else {
+          setLoading(false);
+        }
+      } catch (err) {
+        console.error("Auth initialization failed:", err);
+        setLoading(false); // Allow app to load even if auth fails
       }
     };
 
