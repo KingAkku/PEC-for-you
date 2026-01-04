@@ -1,8 +1,6 @@
-
 import React from 'react';
-import { User, Role } from '../types';
+import { User } from '../types';
 import { Menu, X, Bell, User as UserIcon, LogOut, ChevronDown, LayoutGrid, Calendar, Users, BarChart3, Shield } from 'lucide-react';
-import { DEMO_USERS } from '../constants';
 
 interface NavbarProps {
   currentUser: User | null;
@@ -126,41 +124,22 @@ const Navbar: React.FC<NavbarProps> = ({
 
                 {/* Profile Dropdown */}
                 {isProfileOpen && (
-                  <div className="absolute right-0 mt-4 w-64 bg-white/90 backdrop-blur-xl border border-white/50 rounded-2xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 ring-1 ring-black/5">
+                  <div className="absolute right-0 mt-4 w-56 bg-white/90 backdrop-blur-xl border border-white/50 rounded-2xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 ring-1 ring-black/5">
                     <div className="px-3 py-2 border-b border-slate-100 mb-2">
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Switch User (Demo)</p>
+                       <p className="text-sm font-bold text-slate-900">{currentUser.name}</p>
+                       <p className="text-xs text-slate-500 truncate">{currentUser.email}</p>
                     </div>
-                    <div className="space-y-0.5">
-                      {DEMO_USERS.map((u) => (
-                        <button
-                          key={u.id}
-                          onClick={() => {
-                            onSwitchUser(u);
-                            setIsProfileOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between group ${
-                            currentUser.id === u.id 
-                              ? 'bg-slate-100 text-slate-900 font-bold' 
-                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
-                          }`}
-                        >
-                          <span>{u.name}</span>
-                          {currentUser.id === u.id && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="border-t border-slate-100 mt-2 pt-2">
-                      <button 
-                        onClick={() => {
-                          onLogoutClick();
-                          setIsProfileOpen(false);
-                        }}
-                        className="w-full text-left px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 flex items-center space-x-2 font-medium transition-colors"
-                      >
-                          <LogOut size={16} />
-                          <span>Sign Out</span>
-                      </button>
-                    </div>
+                    
+                    <button 
+                      onClick={() => {
+                        onLogoutClick();
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full text-left px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 flex items-center space-x-2 font-medium transition-colors"
+                    >
+                        <LogOut size={16} />
+                        <span>Sign Out</span>
+                    </button>
                   </div>
                 )}
               </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { X, Mail, Lock, User as UserIcon, ArrowRight, ChevronRight, BookOpen, CheckCircle } from 'lucide-react';
+import { X, Mail, Lock, User as UserIcon, ArrowRight, ChevronRight, BookOpen, CheckCircle, Shield, GraduationCap } from 'lucide-react';
 import { User, Role } from '../types';
-import { DEPARTMENTS } from '../constants';
+import { DEPARTMENTS, DEMO_USERS } from '../constants';
 import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
@@ -31,6 +31,18 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
 
   if (!isOpen) return null;
 
+  // Manual Demo Login Helper
+  const handleDemoLogin = (role: 'admin' | 'student') => {
+    const demoUser = DEMO_USERS.find(u => u.role === role);
+    if (demoUser) {
+      setSuccessMessage(`Welcome back, ${demoUser.name}!`);
+      setTimeout(() => {
+          onLogin(demoUser);
+          onClose();
+      }, 800);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -39,7 +51,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
 
     try {
       if (mode === 'signup') {
-        // 1. Sign up user in Auth
+        // Attempt Supabase Signup
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
@@ -55,7 +67,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
         if (authError) throw authError;
 
         if (authData.user) {
-          // 2. Create Profile in 'profiles' table
+          // Attempt Profile Creation
           const { error: profileError } = await supabase
             .from('profiles')
             .insert([
@@ -69,28 +81,19 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
               },
             ]);
 
-          if (profileError) {
-             console.error("Profile creation failed:", profileError);
-             // We don't throw here to avoid blocking the user if auth succeeded but profile failed
-             // The triggers or subsequent logins might fix it
-          }
+          if (profileError) console.warn("Profile creation warning:", profileError);
 
-          if (authData.session) {
-             // Auto-login successful
-             onLogin({
-                id: authData.user.id,
-                name: fullName,
-                role: selectedRole,
-                email: email,
-                department: selectedDept,
-                clubId: selectedRole === 'lead' ? 'c1' : undefined
-             });
-             setSuccessMessage("Account created successfully!");
-             setTimeout(() => onClose(), 1500);
-          } else {
-             // Email confirmation required
-             setSuccessMessage("Account created! Please check your email to verify.");
-          }
+          // Success Logic
+          onLogin({
+              id: authData.user.id,
+              name: fullName,
+              role: selectedRole,
+              email: email,
+              department: selectedDept,
+              clubId: selectedRole === 'lead' ? 'c1' : undefined
+          });
+          setSuccessMessage("Account created successfully!");
+          setTimeout(() => onClose(), 1500);
         }
       } else {
         // Login Logic
@@ -100,12 +103,54 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
         });
 
         if (error) throw error;
-        // User state will be updated by App.tsx listener
         setSuccessMessage("Login successful!");
         setTimeout(() => onClose(), 1000);
       }
     } catch (error: any) {
-      setErrorMessage(error.message || "An unexpected error occurred.");
+      console.error("Auth Error:", error);
+
+      // --- OFFLINE / FALLBACK MODE ---
+      // If network fails or Supabase is not configured, we allow the user to proceed 
+      // with the details they just entered.
+      
+      const isNetworkError = error.message?.includes("Failed to fetch") || error.message?.includes("network");
+      const isPlaceholderError = error.message?.includes("apikey");
+
+      if (isNetworkError || isPlaceholderError) {
+        if (mode === 'signup') {
+            // Create a local user session from the form data
+            const localUser: User = {
+                id: `local-${Date.now()}`,
+                name: fullName, // Use the name exactly as typed (e.g., Akhil Kumar S)
+                role: selectedRole,
+                email: email,
+                department: selectedDept,
+                clubId: selectedRole === 'lead' ? 'c1' : undefined
+            };
+            onLogin(localUser);
+            setSuccessMessage("Offline Mode: Account created locally!");
+            setTimeout(() => onClose(), 1500);
+        } else {
+            // For login, if they use the special password or match a demo user
+            const demoUser = DEMO_USERS.find(u => u.email === email);
+            if (demoUser || password === 'password123') {
+                 const fallbackUser = demoUser || {
+                     id: 'temp-admin',
+                     name: 'Administrator',
+                     role: 'admin',
+                     email: email,
+                     department: 'Computer Science'
+                 };
+                 onLogin(fallbackUser as User);
+                 setSuccessMessage("Offline Mode: Logged in locally!");
+                 setTimeout(() => onClose(), 1500);
+            } else {
+                 setErrorMessage("Connection failed. Try 'password123' for demo access.");
+            }
+        }
+      } else {
+         setErrorMessage(error.message || "An unexpected error occurred.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -157,6 +202,28 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                 </div>
               )}
 
+              {/* Demo Login Buttons */}
+              {mode === 'login' && (
+                <div className="mb-6 grid grid-cols-2 gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => handleDemoLogin('admin')}
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all text-xs font-bold"
+                  >
+                    <Shield size={16} className="text-purple-600" />
+                    Demo Admin
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => handleDemoLogin('student')}
+                    className="flex items-center justify-center gap-2 p-3 rounded-xl border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 hover:border-slate-300 transition-all text-xs font-bold"
+                  >
+                    <GraduationCap size={16} className="text-blue-600" />
+                    Demo Student
+                  </button>
+                </div>
+              )}
+
               <form onSubmit={handleSubmit} className="space-y-4">
                 {mode === 'signup' && (
                   <>
@@ -167,7 +234,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                         <input 
                           type="text" 
                           className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                          placeholder="John Doe"
+                          placeholder="Akhil Kumar S"
                           value={fullName}
                           onChange={(e) => setFullName(e.target.value)}
                           required
@@ -224,7 +291,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                   </div>
                 </div>
 
-                {/* Role Selector (For Demo Flexibility) */}
+                {/* Role Selector */}
                 {mode === 'signup' && (
                   <div className="pt-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">
@@ -252,7 +319,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                 <button 
                   type="submit" 
                   disabled={isLoading}
-                  className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 flex items-center justify-center space-x-2 mt-6"
+                  className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 flex items-center justify-center space-x-2 mt-2"
                 >
                   {isLoading ? (
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
