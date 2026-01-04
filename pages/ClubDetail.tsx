@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Club, User } from '../types';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Users, Calendar, Award, UserPlus, Globe, Mail, Instagram, Linkedin, MessageSquare, ExternalLink } from 'lucide-react';
@@ -14,6 +14,10 @@ const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack, user }) => {
   // Mock data specifically for this view
   const clubEvents = MOCK_EVENTS.slice(0, 2); // Just take first 2 as mock events for the club
   
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 

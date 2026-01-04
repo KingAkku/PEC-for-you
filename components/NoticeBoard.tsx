@@ -42,13 +42,13 @@ const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
 
 const NoticeBoard: React.FC = () => {
   return (
-    <section className="py-20 px-4 max-w-7xl mx-auto">
+    <section id="notice-board" className="py-20 px-4 max-w-7xl mx-auto scroll-mt-24">
       <div className="flex flex-col md:flex-row justify-between items-end mb-10">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <span className="relative flex h-3 w-3">
+            <span className="relative flex h-4 w-4">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
             </span>
             <h2 className="text-3xl font-display text-slate-900 tracking-tight">Digital Notice Board</h2>
           </div>

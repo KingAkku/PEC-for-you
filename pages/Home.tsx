@@ -9,6 +9,14 @@ interface HomeProps {
 }
 
 const Home: React.FC<HomeProps> = ({ onNavigate }) => {
+  
+  const scrollToNotices = () => {
+    const element = document.getElementById('notice-board');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -44,7 +52,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       {/* Key Features Section */}
       <section className="py-24 bg-slate-50/50 border-t border-slate-100 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16">
+          <div className="text-left max-w-2xl mb-16">
             <h2 className="text-3xl font-bold text-slate-900 mb-4 tracking-tight font-display">
               Everything you need, all in one place.
             </h2>
@@ -57,7 +65,8 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
             {/* Feature 1: Live Notices */}
             <motion.div 
                whileHover={{ y: -5 }}
-               className="p-8 rounded-3xl bg-white shadow-sm border border-gray-100 relative overflow-hidden group"
+               className="p-8 rounded-3xl bg-white shadow-sm border border-gray-100 relative overflow-hidden group cursor-pointer"
+               onClick={scrollToNotices}
             >
                 <div className="absolute top-0 right-0 w-32 h-32 bg-red-50 rounded-bl-full -mr-10 -mt-10 transition-transform group-hover:scale-150 duration-500" />
                 

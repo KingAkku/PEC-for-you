@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { MOCK_EVENTS } from '../constants';
 import { User } from '../types';
 import { Calendar, MapPin, Users, Plus, ArrowRight, Search, Filter } from 'lucide-react';
@@ -16,6 +16,10 @@ const Events: React.FC<EventsProps> = ({ user }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClub, setSelectedClub] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Authorization check: Admin, Faculty, and Leads can create events
   const canCreateEvent = user && ['admin', 'faculty', 'lead'].includes(user.role);

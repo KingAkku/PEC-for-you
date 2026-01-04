@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MOCK_CLUBS } from '../constants';
 import { User, Club } from '../types';
 import { motion } from 'framer-motion';
@@ -11,6 +11,10 @@ interface ClubsProps {
 
 const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
   const [clubs, setClubs] = useState(MOCK_CLUBS);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleManage = (clubName: string) => {
      alert(`Opening management dashboard for ${clubName}`);
