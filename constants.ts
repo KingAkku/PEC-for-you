@@ -59,7 +59,7 @@ export const MOCK_CLUBS: Club[] = [
     logoInitial: 'F', 
     memberCount: 90,
     category: 'Open Source',
-    image: 'https://images.unsplash.com/photo-1607799275518-d58665d099db?auto=format&fit=crop&q=80&w=800'
+    image: 'https://images.unsplash.com/photo-1555099962-4199c345e5dd?auto=format&fit=crop&q=80&w=800'
   },
 ];
 

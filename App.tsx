@@ -4,16 +4,25 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Events from './pages/Events';
 import Clubs from './pages/Clubs';
+import ClubDetail from './pages/ClubDetail';
 import AuthModal from './components/AuthModal';
-import { User } from './types';
+import { User, Club } from './types';
 import { AnimatePresence } from 'framer-motion';
 
 const App: React.FC = () => {
   // Start with no user (null) instead of a demo user
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState('home');
+  const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+
+  const handleNavigateToClub = (club: Club) => {
+    setSelectedClub(club);
+    setCurrentView('club-detail');
+    // Scroll to top
+    window.scrollTo(0, 0);
+  };
 
   const renderView = () => {
     switch (currentView) {
@@ -22,7 +31,17 @@ const App: React.FC = () => {
       case 'events':
         return <Events user={currentUser} />;
       case 'clubs':
-        return <Clubs user={currentUser} />;
+        return <Clubs user={currentUser} onViewClub={handleNavigateToClub} />;
+      case 'club-detail':
+        return selectedClub ? (
+          <ClubDetail 
+            club={selectedClub} 
+            onBack={() => setCurrentView('clubs')} 
+            user={currentUser} 
+          />
+        ) : (
+          <Clubs user={currentUser} onViewClub={handleNavigateToClub} />
+        );
       default:
         return <Home onNavigate={setCurrentView} />;
     }
@@ -45,6 +64,8 @@ const App: React.FC = () => {
 
   return (
     <div className="font-sans text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
+      {/* Hide Navbar on detail page for immersive feel, or keep it. Let's keep it but maybe different style? 
+          Actually standard navbar is good for consistency. */}
       <Navbar 
         currentUser={currentUser} 
         onSwitchUser={setCurrentUser} 
@@ -68,6 +89,8 @@ const App: React.FC = () => {
         onLogin={setCurrentUser}
       />
 
+      {/* Only show Footer on main pages, maybe not detail if we want infinite scroll feel, 
+          but usually footer is good everywhere. */}
       <Footer />
     </div>
   );

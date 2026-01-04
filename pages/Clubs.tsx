@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
 import { MOCK_CLUBS } from '../constants';
-import { User } from '../types';
+import { User, Club } from '../types';
 import { motion } from 'framer-motion';
 import ClubCard from '../components/ClubCard';
 
 interface ClubsProps {
   user: User | null;
+  onViewClub: (club: Club) => void;
 }
 
-const Clubs: React.FC<ClubsProps> = ({ user }) => {
+const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
   const [clubs, setClubs] = useState(MOCK_CLUBS);
-
-  const handleJoin = (clubName: string) => {
-    if (!user) {
-      alert("Please login to join a club.");
-      return;
-    }
-    alert(`Request sent to join ${clubName}`);
-  };
 
   const handleManage = (clubName: string) => {
      alert(`Opening management dashboard for ${clubName}`);
@@ -42,7 +35,7 @@ const Clubs: React.FC<ClubsProps> = ({ user }) => {
             key={club.id} 
             club={club} 
             index={index}
-            onJoin={handleJoin}
+            onJoin={onViewClub}
             isAdmin={user?.role === 'admin' || user?.role === 'lead'} 
             onManage={() => handleManage(club.name)}
           />

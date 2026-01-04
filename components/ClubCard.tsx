@@ -5,7 +5,7 @@ import { Club } from '../types';
 
 interface ClubCardProps {
   club: Club;
-  onJoin: (clubName: string) => void;
+  onJoin: (club: Club) => void;
   isAdmin?: boolean;
   onManage?: () => void;
   index?: number;
@@ -21,7 +21,7 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, onJoin, isAdmin, onManage, in
       className="group relative bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 flex flex-col h-full"
     >
       {/* Image Banner */}
-      <div className="h-48 overflow-hidden relative shrink-0">
+      <div className="h-48 overflow-hidden relative shrink-0 cursor-pointer" onClick={() => onJoin(club)}>
         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent opacity-80 z-10" />
         <img 
           src={club.image} 
@@ -37,7 +37,7 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, onJoin, isAdmin, onManage, in
 
       {/* Content */}
       <div className="p-7 flex flex-col flex-grow">
-        <div className="flex justify-between items-start mb-3">
+        <div className="flex justify-between items-start mb-3 cursor-pointer" onClick={() => onJoin(club)}>
           <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{club.name}</h2>
           <div className="flex items-center gap-1.5 text-gray-500 text-sm font-medium">
             <Users size={16} className="text-gray-400" />
@@ -45,14 +45,14 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, onJoin, isAdmin, onManage, in
           </div>
         </div>
 
-        <p className="text-gray-500 mb-8 line-clamp-3 text-sm leading-relaxed flex-grow">
+        <p className="text-gray-500 mb-8 line-clamp-3 text-sm leading-relaxed flex-grow cursor-pointer" onClick={() => onJoin(club)}>
           {club.description}
         </p>
 
         {/* Action Area */}
         <div className="flex gap-3 mt-auto pt-6 border-t border-gray-50">
           <button 
-            onClick={() => onJoin(club.name)}
+            onClick={() => onJoin(club)}
             className="flex-1 bg-gray-900 text-white py-3 px-4 rounded-xl font-medium text-sm hover:bg-black transition-all hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 active:scale-95 flex items-center justify-center gap-2"
           >
             <UserPlus size={18} /> 
@@ -68,7 +68,10 @@ const ClubCard: React.FC<ClubCardProps> = ({ club, onJoin, isAdmin, onManage, in
               <Settings size={20} />
             </button>
           ) : (
-            <button className="p-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 transition-all active:scale-95">
+            <button 
+              onClick={() => onJoin(club)}
+              className="p-3 rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-900 transition-all active:scale-95"
+            >
                <ExternalLink size={20} />
             </button>
           )}
