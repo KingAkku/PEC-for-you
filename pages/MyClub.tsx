@@ -3,15 +3,16 @@ import { User, Club } from '../types';
 import { MOCK_CLUBS } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Settings, Users, Plus, Save, Upload, X, Check } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 interface MyClubProps {
   user: User;
 }
 
 const MyClub: React.FC<MyClubProps> = ({ user }) => {
-  // Simulate fetching the club managed by this user
-  const initialClub = MOCK_CLUBS.find(c => c.id === user.clubId) || MOCK_CLUBS[0];
-  const [clubData, setClubData] = useState<Club>(initialClub);
+  const [clubData, setClubData] = useState<Club | null>(null);
+  const [loading, setLoading] = useState(true);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -20,19 +21,91 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
   const [newMemberName, setNewMemberName] = useState('');
   const [newMemberRole, setNewMemberRole] = useState('Member');
 
-  const [members, setMembers] = useState([
-    { id: 1, name: 'Alice Johnson', role: 'Member', joined: '2023-09-01' },
-    { id: 2, name: 'Bob Smith', role: 'Executive', joined: '2023-08-15' },
-    { id: 3, name: 'Charlie Brown', role: 'Member', joined: '2023-09-10' },
-  ]);
+  const [members, setMembers] = useState<{id: string, name: string, role: string, joined: string}[]>([]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, []);
+    fetchClubData();
+  }, [user.clubId]);
 
-  const handleSave = () => {
-    setIsEditing(false);
-    triggerToast();
+  const fetchClubData = async () => {
+    if (!user.clubId) {
+        setLoading(false);
+        return;
+    }
+
+    try {
+        // 1. Fetch Club Details
+        const { data: club, error: clubError } = await supabase
+            .from('clubs')
+            .select('*')
+            .eq('id', user.clubId)
+            .single();
+
+        if (clubError) throw clubError;
+
+        // 2. Fetch Real Member Count
+        const { count, error: countError } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact', head: true })
+            .eq('club_id', user.clubId);
+
+        // 3. Set Club Data
+        setClubData({
+            id: club.id,
+            name: club.name,
+            description: club.description,
+            logoInitial: club.logo_initial,
+            memberCount: count || 0, // Real Count
+            category: club.category,
+            image: club.image
+        });
+
+        // 4. Fetch Members List
+        const { data: membersData } = await supabase
+            .from('profiles')
+            .select('id, name, role, created_at')
+            .eq('club_id', user.clubId);
+
+        if (membersData) {
+            setMembers(membersData.map((m: any) => ({
+                id: m.id,
+                name: m.name,
+                role: m.role === 'lead' ? 'Club Lead' : 'Member',
+                joined: new Date(m.created_at).toLocaleDateString()
+            })));
+        }
+
+    } catch (e) {
+        console.error("Error fetching my club:", e);
+        // Fallback to mock if absolutely necessary
+        const mock = MOCK_CLUBS.find(c => c.id === user.clubId);
+        if (mock) setClubData(mock);
+    } finally {
+        setLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    if (!clubData) return;
+
+    try {
+        const { error } = await supabase
+            .from('clubs')
+            .update({
+                description: clubData.description,
+                image: clubData.image
+            })
+            .eq('id', clubData.id);
+
+        if (error) throw error;
+        
+        setIsEditing(false);
+        triggerToast();
+    } catch (e) {
+        console.error("Error updating club:", e);
+        alert("Failed to save changes.");
+    }
   };
 
   const triggerToast = () => {
@@ -40,20 +113,42 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
       setTimeout(() => setShowToast(false), 3000);
   };
 
-  const handleAddMember = (e: React.FormEvent) => {
+  const handleAddMember = async (e: React.FormEvent) => {
       e.preventDefault();
+      // In a real app, this would probably invite a user via email.
+      // For this demo, we'll just show the toast as if we added them to the UI list locally
+      // since we can't create a 'Auth User' from here without admin API.
+      
       if(newMemberName) {
+          // Just update local state for demo purposes as we can't generate real users on the fly easily
           setMembers([...members, { 
-              id: Date.now(), 
+              id: `temp-${Date.now()}`, 
               name: newMemberName, 
               role: newMemberRole, 
-              joined: new Date().toISOString().split('T')[0] 
+              joined: new Date().toLocaleDateString() 
           }]);
           setNewMemberName('');
           setShowAddMemberModal(false);
           triggerToast();
       }
   };
+
+  if (loading) {
+      return (
+        <div className="pt-32 flex justify-center">
+             <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin"></div>
+        </div>
+      );
+  }
+
+  if (!clubData) {
+      return (
+          <div className="pt-32 px-4 text-center">
+              <h2 className="text-2xl font-bold text-slate-900">Club Not Found</h2>
+              <p className="text-slate-500">You do not seem to be assigned to a club.</p>
+          </div>
+      );
+  }
 
   return (
     <motion.div 
@@ -172,26 +267,29 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
                       </button>
                   </div>
                   
-                  <div className="space-y-4 flex-grow">
-                      {members.map((member) => (
+                  <div className="space-y-4 flex-grow overflow-y-auto max-h-[500px] pr-2">
+                      {members.length > 0 ? members.map((member) => (
                           <div key={member.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
                               <div className="flex items-center gap-3">
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold text-sm">
+                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold text-sm shrink-0">
                                       {member.name.charAt(0)}
                                   </div>
-                                  <div>
-                                      <div className="font-bold text-slate-900 text-sm">{member.name}</div>
+                                  <div className="min-w-0">
+                                      <div className="font-bold text-slate-900 text-sm truncate">{member.name}</div>
                                       <div className="text-xs text-slate-400">{member.role}</div>
                                   </div>
                               </div>
+                              {/* Remove button (mock for now) */}
                               <button className="text-xs text-slate-300 hover:text-red-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Remove</button>
                           </div>
-                      ))}
+                      )) : (
+                          <div className="text-center py-8 text-slate-400 text-sm">No members found</div>
+                      )}
                   </div>
                   
-                  <button className="w-full mt-6 py-3 border border-slate-200 rounded-xl text-slate-500 font-bold text-sm hover:bg-slate-50 transition-colors">
-                      View All Members
-                  </button>
+                  <div className="mt-4 pt-4 border-t border-slate-100 text-center">
+                    <span className="text-xs text-slate-400">Total: {members.length}</span>
+                  </div>
               </div>
           </div>
       </div>
@@ -253,7 +351,7 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
                 <div className="bg-green-500 rounded-full p-0.5">
                     <Check size={14} strokeWidth={3} />
                 </div>
-                <span className="font-bold text-sm">Changes Saved Successfully</span>
+                <span className="font-bold text-sm">Action Successful</span>
             </motion.div>
         )}
       </AnimatePresence>

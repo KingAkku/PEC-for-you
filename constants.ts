@@ -80,15 +80,3 @@ export const DEMO_USERS: User[] = [
   { id: 'u3', name: 'Alex (Lead - IEEE)', role: 'lead', clubId: 'c2', department: 'Electrical & Electronics', email: 'alex@pec.ac.in' },
   { id: 'u4', name: 'Sarah (Student)', role: 'student', department: 'Civil Engineering', email: 'sarah@pec.ac.in' },
 ];
-
-export const MOCK_STUDENTS_DB: User[] = [
-  { id: 's1', name: 'John Doe', role: 'student', department: 'Computer Science', email: 'john@pec.ac.in' },
-  { id: 's2', name: 'Jane Smith', role: 'student', department: 'Electronics & Communication', email: 'jane@pec.ac.in' },
-  { id: 's3', name: 'Robert Brown', role: 'student', department: 'Mechanical Engineering', email: 'robert@pec.ac.in' },
-  { id: 's4', name: 'Emily Davis', role: 'student', department: 'Computer Science', email: 'emily@pec.ac.in' },
-  { id: 's5', name: 'Michael Wilson', role: 'student', department: 'Civil Engineering', email: 'michael@pec.ac.in' },
-  { id: 's6', name: 'Sarah Miller', role: 'student', department: 'Electrical & Electronics', email: 'sarah.m@pec.ac.in' },
-  { id: 's7', name: 'David Garcia', role: 'student', department: 'Computer Science', email: 'david@pec.ac.in' },
-  { id: 's8', name: 'James Rodriguez', role: 'student', department: 'Mechanical Engineering', email: 'james@pec.ac.in' },
-  { id: 's9', name: 'Maria Hernandez', role: 'student', department: 'Civil Engineering', email: 'maria@pec.ac.in' },
-];

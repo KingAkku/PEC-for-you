@@ -22,26 +22,44 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
 
   const fetchClubs = async () => {
     try {
-      const { data, error } = await supabase
+      // 1. Fetch Clubs
+      const { data: clubsData, error: clubsError } = await supabase
         .from('clubs')
         .select('*');
       
-      if (error) {
-        console.error("Error fetching clubs:", error.message);
-        setClubs(MOCK_CLUBS);
-      } else {
-        // Map DB data or default to empty array
-        const mappedClubs = (data || []).map((c: any) => ({
-          id: c.id,
-          name: c.name,
-          description: c.description,
-          logoInitial: c.logo_initial || c.name.charAt(0),
-          memberCount: c.member_count,
-          category: c.category,
-          image: c.image
-        }));
-        setClubs(mappedClubs);
+      if (clubsError) throw clubsError;
+
+      // 2. Fetch Profiles to calculate real member counts
+      // We fetch all profiles that have a club_id assigned
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('club_id')
+        .not('club_id', 'is', null);
+
+      if (profilesError) console.warn("Error fetching profile counts:", profilesError);
+
+      // 3. Aggregate Counts
+      const memberCounts: Record<string, number> = {};
+      if (profilesData) {
+        profilesData.forEach((p: any) => {
+          if (p.club_id) {
+            memberCounts[p.club_id] = (memberCounts[p.club_id] || 0) + 1;
+          }
+        });
       }
+
+      // 4. Map Data
+      const mappedClubs = (clubsData || []).map((c: any) => ({
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        logoInitial: c.logo_initial || c.name.charAt(0),
+        memberCount: memberCounts[c.id] || 0, // Use real calculated count
+        category: c.category,
+        image: c.image
+      }));
+      
+      setClubs(mappedClubs);
     } catch (error) {
       console.error("Unexpected error fetching clubs:", error);
       setClubs(MOCK_CLUBS);

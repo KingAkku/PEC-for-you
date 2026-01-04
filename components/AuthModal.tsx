@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, Mail, Lock, User as UserIcon, ArrowRight, ChevronRight, BookOpen, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Mail, Lock, User as UserIcon, ArrowRight, ChevronRight, BookOpen, CheckCircle, Users } from 'lucide-react';
 import { User, Role } from '../types';
 import { DEPARTMENTS } from '../constants';
 import { supabase } from '../lib/supabase';
@@ -16,6 +16,11 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
   const [selectedRole, setSelectedRole] = useState<Role>('student');
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDept, setSelectedDept] = useState(DEPARTMENTS[0]);
+  
+  // Real Club Selection State
+  const [clubs, setClubs] = useState<{id: string, name: string}[]>([]);
+  const [selectedClubId, setSelectedClubId] = useState<string>('');
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -23,11 +28,25 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
   const [successMessage, setSuccessMessage] = useState('');
 
   // Sync mode if initialMode changes when reopening
-  React.useEffect(() => {
+  useEffect(() => {
     setMode(initialMode);
     setErrorMessage('');
     setSuccessMessage('');
   }, [initialMode, isOpen]);
+
+  // Fetch Clubs if Role is Lead
+  useEffect(() => {
+    if (mode === 'signup' && selectedRole === 'lead') {
+      const fetchClubs = async () => {
+        const { data } = await supabase.from('clubs').select('id, name');
+        if (data && data.length > 0) {
+          setClubs(data);
+          setSelectedClubId(data[0].id); // Default to first club
+        }
+      };
+      fetchClubs();
+    }
+  }, [mode, selectedRole]);
 
   if (!isOpen) return null;
 
@@ -65,7 +84,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                 name: fullName,
                 role: selectedRole,
                 department: selectedDept,
-                club_id: selectedRole === 'lead' ? 'c1' : null, 
+                club_id: selectedRole === 'lead' ? selectedClubId : null, 
               },
             ]);
 
@@ -79,7 +98,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                 role: selectedRole,
                 email: email,
                 department: selectedDept,
-                clubId: selectedRole === 'lead' ? 'c1' : undefined
+                clubId: selectedRole === 'lead' ? selectedClubId : undefined
             });
             setSuccessMessage("Account created successfully!");
             setTimeout(() => onClose(), 1500);
@@ -280,9 +299,36 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                   </div>
                 )}
 
+                {/* Club Selector (Only for Lead) */}
+                {mode === 'signup' && selectedRole === 'lead' && (
+                  <div className="space-y-1 animate-in fade-in slide-in-from-top-1">
+                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Assign Club</label>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                      <select
+                        value={selectedClubId}
+                        onChange={(e) => setSelectedClubId(e.target.value)}
+                        className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none text-slate-700"
+                        required
+                      >
+                         {clubs.length === 0 && <option value="">Loading clubs...</option>}
+                         {clubs.map(c => (
+                           <option key={c.id} value={c.id}>{c.name}</option>
+                         ))}
+                      </select>
+                      <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90" size={16} />
+                    </div>
+                    {clubs.length === 0 && (
+                        <p className="text-[10px] text-red-500 mt-1">
+                            No clubs found in database. Please run the SQL seed script first.
+                        </p>
+                    )}
+                  </div>
+                )}
+
                 <button 
                   type="submit" 
-                  disabled={isLoading}
+                  disabled={isLoading || (mode === 'signup' && selectedRole === 'lead' && !selectedClubId)}
                   className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-xl hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-70 disabled:hover:translate-y-0 flex items-center justify-center space-x-2 mt-2"
                 >
                   {isLoading ? (
