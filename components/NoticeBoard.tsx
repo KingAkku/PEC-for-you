@@ -1,7 +1,7 @@
 import React from 'react';
 import { MOCK_NOTICES } from '../constants';
 import { Notice } from '../types';
-import { AlertCircle, Calendar, FileText, Zap } from 'lucide-react';
+import { AlertCircle, Calendar, FileText, Zap, Siren } from 'lucide-react';
 
 const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
   const getIcon = () => {
@@ -44,9 +44,14 @@ const NoticeBoard: React.FC = () => {
   return (
     <section className="py-20 px-4 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-end mb-10">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-900 tracking-tight">Digital Notice Board</h2>
-          <p className="text-slate-500 mt-2">Latest updates from the administration desk.</p>
+        <div className="flex items-start gap-4">
+          <div className="p-3 bg-red-50 rounded-xl text-red-600 shadow-sm border border-red-100 mt-1 animate-pulse">
+            <Siren size={32} />
+          </div>
+          <div>
+            <h2 className="text-3xl font-display text-slate-900 tracking-tight">Digital Notice Board</h2>
+            <p className="text-slate-500 mt-2">Latest updates, emergency alerts, and scholarship deadlines.</p>
+          </div>
         </div>
         <button className="hidden md:block text-blue-600 font-medium hover:underline">View Archived &rarr;</button>
       </div>

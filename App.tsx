@@ -4,34 +4,55 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Events from './pages/Events';
 import Clubs from './pages/Clubs';
-import { DEMO_USERS } from './constants';
+import AuthModal from './components/AuthModal';
 import { User } from './types';
 import { AnimatePresence } from 'framer-motion';
 
 const App: React.FC = () => {
-  const [currentUser, setCurrentUser] = useState<User>(DEMO_USERS[3]); // Default to student
+  // Start with no user (null) instead of a demo user
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState('home');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   const renderView = () => {
     switch (currentView) {
       case 'home':
-        return <Home />;
+        return <Home onNavigate={setCurrentView} />;
       case 'events':
         return <Events user={currentUser} />;
       case 'clubs':
         return <Clubs user={currentUser} />;
       default:
-        return <Home />;
+        return <Home onNavigate={setCurrentView} />;
     }
   };
 
+  const handleOpenLogin = () => {
+    setAuthMode('login');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleOpenSignup = () => {
+    setAuthMode('signup');
+    setIsAuthModalOpen(true);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setCurrentView('home');
+  };
+
   return (
-    <div className="font-sans text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
+    <div className="font-sans text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
       <Navbar 
         currentUser={currentUser} 
         onSwitchUser={setCurrentUser} 
         currentView={currentView}
         onChangeView={setCurrentView}
+        onLoginClick={handleOpenLogin}
+        onSignupClick={handleOpenSignup}
+        onLogoutClick={handleLogout}
       />
       
       <main>
@@ -39,6 +60,13 @@ const App: React.FC = () => {
           {renderView()}
         </AnimatePresence>
       </main>
+
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+        initialMode={authMode}
+        onLogin={setCurrentUser}
+      />
 
       <Footer />
     </div>

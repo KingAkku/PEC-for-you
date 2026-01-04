@@ -3,13 +3,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { CLUB_NAMES } from '../constants';
 import { HeroPopup } from '../types';
 import { getRandomColor, getContrastColor, getRandomInt } from '../utils';
+import { ArrowRight } from 'lucide-react';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onNavigate: (view: string) => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   const [popups, setPopups] = useState<HeroPopup[]>([]);
   const lastMousePos = useRef<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const handleMouseMove = (e: React.MouseEvent) => {
+    // Only trigger popup logic if target is the container itself or the background layer
+    // This prevents popups from spawning when hovering over buttons
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) return;
+
     if (!containerRef.current) return;
 
     const currentX = e.clientX;
@@ -71,12 +81,12 @@ const Hero: React.FC = () => {
     <div 
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full h-[85vh] flex flex-col items-center justify-center overflow-hidden cursor-crosshair"
+      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden cursor-crosshair"
     >
       <div className="absolute inset-0 -z-10 bg-white/30 backdrop-blur-sm"></div>
 
       {/* Main Text */}
-      <div className="z-10 text-center select-none pointer-events-none p-4">
+      <div className="z-10 text-center select-none pointer-events-none p-4 mt-10">
         <h1 className="font-display text-[15vw] leading-none text-slate-900 drop-shadow-2xl opacity-90 tracking-tight">
           PEC Portal
         </h1>
@@ -86,6 +96,22 @@ const Hero: React.FC = () => {
         <p className="mt-2 text-sm text-slate-400 uppercase tracking-widest">
           Connect &bull; Create &bull; Collaborate
         </p>
+      </div>
+
+      {/* CTA Buttons */}
+      <div className="z-30 mt-12 flex flex-col sm:flex-row items-center gap-5 animate-in slide-in-from-bottom-6 fade-in duration-1000 delay-200">
+        <button 
+          onClick={() => onNavigate('events')} 
+          className="group px-8 py-4 bg-slate-900 text-white rounded-full font-medium transition-all hover:bg-black hover:scale-105 flex items-center gap-2 shadow-xl hover:shadow-slate-900/25 cursor-pointer"
+        >
+          Explore Events <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+        <button 
+          onClick={() => onNavigate('clubs')}
+          className="px-8 py-4 bg-white/50 backdrop-blur-md border border-white/50 text-slate-900 rounded-full font-medium hover:bg-white/80 transition-all hover:shadow-lg hover:scale-105 cursor-pointer"
+        >
+          Join a Club
+        </button>
       </div>
 
       {/* Popups Layer */}
@@ -118,7 +144,7 @@ const Hero: React.FC = () => {
         </AnimatePresence>
       </div>
 
-      <div className="absolute bottom-10 animate-bounce text-slate-400 text-sm">
+      <div className="absolute bottom-10 animate-bounce text-slate-400 text-sm pointer-events-none">
         Hover to explore
       </div>
     </div>

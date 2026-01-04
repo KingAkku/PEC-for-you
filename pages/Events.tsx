@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { MOCK_EVENTS } from '../constants';
 import { User } from '../types';
-import { Calendar, MapPin, Users, Plus, Image as ImageIcon } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, Image as ImageIcon, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface EventsProps {
-  user: User;
+  user: User | null;
 }
 
 const Events: React.FC<EventsProps> = ({ user }) => {
@@ -13,7 +13,7 @@ const Events: React.FC<EventsProps> = ({ user }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Authorization check: Admin, Faculty, and Leads can create events
-  const canCreateEvent = ['admin', 'faculty', 'lead'].includes(user.role);
+  const canCreateEvent = user && ['admin', 'faculty', 'lead'].includes(user.role);
 
   return (
     <motion.div 
@@ -21,9 +21,9 @@ const Events: React.FC<EventsProps> = ({ user }) => {
       animate={{ opacity: 1, y: 0 }}
       className="pt-32 px-4 max-w-7xl mx-auto min-h-screen"
     >
-      <div className="flex justify-between items-center mb-10">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
         <div>
-          <h2 className="text-4xl font-bold text-slate-900">Upcoming Events</h2>
+          <h2 className="text-4xl font-display text-slate-900">Upcoming Events</h2>
           <p className="text-slate-500 mt-2">Discover workshops, seminars, and cultural fests.</p>
         </div>
         {canCreateEvent && (
@@ -39,8 +39,8 @@ const Events: React.FC<EventsProps> = ({ user }) => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {events.map((event) => (
-          <div key={event.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 group">
-            <div className="h-48 overflow-hidden relative">
+          <div key={event.id} className="bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-100 hover:shadow-xl transition-all duration-300 group flex flex-col h-full">
+            <div className="h-48 overflow-hidden relative flex-shrink-0">
               <img 
                 src={event.imageUrl} 
                 alt={event.title} 
@@ -50,11 +50,11 @@ const Events: React.FC<EventsProps> = ({ user }) => {
                 {event.organizer}
               </div>
             </div>
-            <div className="p-6">
+            <div className="p-6 flex flex-col flex-grow">
               <h3 className="text-xl font-bold text-slate-900 mb-2">{event.title}</h3>
               <p className="text-slate-500 text-sm mb-4 line-clamp-2">{event.description}</p>
               
-              <div className="space-y-3 text-sm text-slate-600">
+              <div className="space-y-3 text-sm text-slate-600 mb-6">
                 <div className="flex items-center space-x-3">
                   <Calendar size={16} className="text-blue-500" />
                   <span>{event.date}</span>
@@ -69,9 +69,18 @@ const Events: React.FC<EventsProps> = ({ user }) => {
                 </div>
               </div>
 
-              <div className="mt-6">
-                <button className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 font-medium hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all">
-                  Register Now
+              <div className="mt-auto pt-4 border-t border-slate-100">
+                <button 
+                  className={`w-full py-2.5 rounded-xl font-medium transition-all flex items-center justify-center space-x-2 ${
+                    user 
+                      ? 'border border-slate-200 text-slate-700 hover:bg-slate-900 hover:text-white hover:border-slate-900' 
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  }`}
+                  disabled={!user}
+                  title={!user ? "Login to register" : "Register now"}
+                >
+                  {!user && <Lock size={14} />}
+                  <span>{user ? "Register Now" : "Login to Register"}</span>
                 </button>
               </div>
             </div>

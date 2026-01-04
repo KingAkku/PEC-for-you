@@ -1,23 +1,34 @@
 import React from 'react';
 import { User, Role } from '../types';
-import { Menu, X, Bell, User as UserIcon, LogOut } from 'lucide-react';
+import { Menu, X, Bell, User as UserIcon, LogOut, ChevronDown, LayoutGrid, Calendar, Users } from 'lucide-react';
 import { DEMO_USERS } from '../constants';
 
 interface NavbarProps {
-  currentUser: User;
+  currentUser: User | null;
   onSwitchUser: (user: User) => void;
   currentView: string;
   onChangeView: (view: string) => void;
+  onLoginClick: () => void;
+  onSignupClick: () => void;
+  onLogoutClick: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ currentUser, onSwitchUser, currentView, onChangeView }) => {
+const Navbar: React.FC<NavbarProps> = ({ 
+  currentUser, 
+  onSwitchUser, 
+  currentView, 
+  onChangeView,
+  onLoginClick,
+  onSignupClick,
+  onLogoutClick
+}) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isProfileOpen, setIsProfileOpen] = React.useState(false);
 
   const navLinks = [
-    { name: 'Home', id: 'home' },
-    { name: 'Events', id: 'events' },
-    { name: 'Clubs', id: 'clubs' },
+    { name: 'Home', id: 'home', icon: LayoutGrid },
+    { name: 'Events', id: 'events', icon: Calendar },
+    { name: 'Clubs', id: 'clubs', icon: Users },
   ];
 
   const getRoleBadgeColor = (role: Role) => {
@@ -30,94 +41,125 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, onSwitchUser, currentView,
   };
 
   return (
-    <nav className="fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white/70 backdrop-blur-xl border border-white/40 shadow-lg px-6 py-4 transition-all duration-300">
-      <div className="flex justify-between items-center">
-        {/* Logo */}
+    <nav className="fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-lg px-6 h-[72px] transition-all duration-300">
+      <div className="relative flex items-center justify-between h-full">
+        
+        {/* Left: Logo */}
         <div 
-          className="flex items-center space-x-2 cursor-pointer" 
+          className="flex items-center space-x-2 cursor-pointer z-10 flex-shrink-0" 
           onClick={() => onChangeView('home')}
         >
-          <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center text-white font-display text-xl pt-1">
+          <div className="w-9 h-9 bg-slate-900 rounded-lg flex items-center justify-center text-white font-display text-xl pt-1 shadow-md">
             P
           </div>
-          <span className="font-display text-xl text-slate-800 tracking-tight hidden sm:block">PEC Portal</span>
+          <span className="font-display text-xl text-slate-900 tracking-tight hidden sm:block">PEC Portal</span>
         </div>
 
-        {/* Desktop Nav */}
-        <div className="hidden md:flex space-x-8">
+        {/* Center: Nav Links (Absolutely Positioned) */}
+        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden md:flex items-center p-1.5 bg-slate-100/50 rounded-xl border border-white/50 backdrop-blur-sm">
           {navLinks.map((link) => (
             <button
               key={link.id}
               onClick={() => onChangeView(link.id)}
-              className={`text-sm font-medium transition-colors duration-200 ${
+              className={`flex items-center space-x-2 text-sm font-medium px-5 py-2 rounded-lg transition-all duration-200 ${
                 currentView === link.id 
-                  ? 'text-slate-900 bg-white/50 px-3 py-1.5 rounded-lg shadow-sm' 
-                  : 'text-slate-500 hover:text-slate-900'
+                  ? 'bg-white text-slate-900 shadow-sm font-semibold' 
+                  : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'
               }`}
             >
-              {link.name}
+              <link.icon size={18} strokeWidth={2} />
+              <span>{link.name}</span>
             </button>
           ))}
         </div>
 
-        {/* User Actions */}
-        <div className="flex items-center space-x-4">
-          <button className="p-2 text-slate-500 hover:text-slate-900 transition-colors relative">
-            <Bell size={20} />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-          
-          <div className="relative">
-            <button 
-              onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center space-x-2 pl-2 border-l border-slate-200"
-            >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 shadow-inner">
-                <UserIcon size={16} />
-              </div>
-              <div className="hidden lg:block text-left">
-                <p className="text-xs font-semibold text-slate-800">{currentUser.name}</p>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded border ${getRoleBadgeColor(currentUser.role)} uppercase tracking-wider font-bold`}>
-                  {currentUser.role}
-                </span>
-              </div>
-            </button>
+        {/* Right: User Actions or Auth Buttons */}
+        <div className="flex items-center justify-end space-x-3 z-10 flex-shrink-0">
+          {!currentUser ? (
+            <div className="hidden md:flex items-center space-x-3">
+              <button 
+                onClick={onLoginClick}
+                className="text-sm font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors"
+              >
+                Log In
+              </button>
+              <button 
+                onClick={onSignupClick}
+                className="text-sm font-bold text-white bg-slate-900 hover:bg-slate-800 px-5 py-2.5 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5"
+              >
+                Sign Up
+              </button>
+            </div>
+          ) : (
+            <>
+              <button className="p-2 text-slate-500 hover:text-slate-900 transition-colors relative hover:bg-slate-100 rounded-full">
+                <Bell size={20} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
+              </button>
+              
+              <div className="relative">
+                <button 
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-3 pl-2 py-1 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 shadow-inner border border-white">
+                    <UserIcon size={18} />
+                  </div>
+                  <div className="hidden lg:block text-left">
+                    <p className="text-sm font-semibold text-slate-800 leading-none">{currentUser.name}</p>
+                    <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wide">
+                      {currentUser.role}
+                    </span>
+                  </div>
+                  <ChevronDown size={14} className={`text-slate-400 transition-transform ${isProfileOpen ? 'rotate-180' : ''}`} />
+                </button>
 
-            {/* Profile Dropdown / User Switcher */}
-            {isProfileOpen && (
-              <div className="absolute right-0 mt-4 w-64 bg-white/90 backdrop-blur-xl border border-white/50 rounded-xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2">
-                <div className="px-3 py-2 border-b border-slate-100 mb-2">
-                  <p className="text-xs font-bold text-slate-400 uppercase">Switch User (Demo)</p>
-                </div>
-                {DEMO_USERS.map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => {
-                      onSwitchUser(u);
-                      setIsProfileOpen(false);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-lg text-sm mb-1 transition-colors ${
-                      currentUser.id === u.id 
-                        ? 'bg-slate-100 text-slate-900 font-medium' 
-                        : 'text-slate-500 hover:bg-slate-50'
-                    }`}
-                  >
-                    {u.name} <span className="opacity-50">({u.role})</span>
-                  </button>
-                ))}
-                <div className="border-t border-slate-100 mt-2 pt-2">
-                   <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-red-500 hover:bg-red-50 flex items-center space-x-2">
-                      <LogOut size={14} />
-                      <span>Sign Out</span>
-                   </button>
-                </div>
+                {/* Profile Dropdown */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-4 w-64 bg-white/90 backdrop-blur-xl border border-white/50 rounded-2xl shadow-2xl p-2 animate-in fade-in slide-in-from-top-2 ring-1 ring-black/5">
+                    <div className="px-3 py-2 border-b border-slate-100 mb-2">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Switch User (Demo)</p>
+                    </div>
+                    <div className="space-y-0.5">
+                      {DEMO_USERS.map((u) => (
+                        <button
+                          key={u.id}
+                          onClick={() => {
+                            onSwitchUser(u);
+                            setIsProfileOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors flex items-center justify-between group ${
+                            currentUser.id === u.id 
+                              ? 'bg-slate-100 text-slate-900 font-bold' 
+                              : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                          }`}
+                        >
+                          <span>{u.name}</span>
+                          {currentUser.id === u.id && <div className="w-1.5 h-1.5 rounded-full bg-green-500"></div>}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="border-t border-slate-100 mt-2 pt-2">
+                      <button 
+                        onClick={() => {
+                          onLogoutClick();
+                          setIsProfileOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-sm text-red-500 hover:bg-red-50 flex items-center space-x-2 font-medium transition-colors"
+                      >
+                          <LogOut size={16} />
+                          <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
 
           {/* Mobile Menu Button */}
           <button 
-            className="md:hidden p-2 text-slate-600"
+            className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -127,7 +169,7 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, onSwitchUser, currentView,
 
       {/* Mobile Nav */}
       {isMobileMenuOpen && (
-        <div className="md:hidden mt-4 pt-4 border-t border-slate-200 animate-in slide-in-from-top-4">
+        <div className="md:hidden mt-4 pt-4 border-t border-slate-200/60 animate-in slide-in-from-top-4 pb-2">
           <div className="flex flex-col space-y-2">
              {navLinks.map((link) => (
               <button
@@ -136,15 +178,32 @@ const Navbar: React.FC<NavbarProps> = ({ currentUser, onSwitchUser, currentView,
                   onChangeView(link.id);
                   setIsMobileMenuOpen(false);
                 }}
-                className={`text-left px-4 py-3 rounded-xl font-medium ${
+                className={`flex items-center space-x-3 text-left px-4 py-3 rounded-xl font-medium transition-colors ${
                   currentView === link.id
                   ? 'bg-slate-100 text-slate-900'
                   : 'text-slate-500 hover:bg-slate-50'
                 }`}
               >
-                {link.name}
+                <link.icon size={20} />
+                <span>{link.name}</span>
               </button>
             ))}
+            {!currentUser && (
+               <div className="pt-4 mt-2 border-t border-slate-100 grid grid-cols-2 gap-3">
+                 <button 
+                   onClick={() => { onLoginClick(); setIsMobileMenuOpen(false); }}
+                   className="px-4 py-3 rounded-xl font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 text-center"
+                 >
+                   Log In
+                 </button>
+                 <button 
+                   onClick={() => { onSignupClick(); setIsMobileMenuOpen(false); }}
+                   className="px-4 py-3 rounded-xl font-bold text-white bg-slate-900 hover:bg-slate-800 text-center"
+                 >
+                   Sign Up
+                 </button>
+               </div>
+            )}
           </div>
         </div>
       )}

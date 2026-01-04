@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { MOCK_CLUBS } from '../constants';
 import { User } from '../types';
-import { Users, Shield, UserPlus, Star } from 'lucide-react';
+import { Users, Shield, UserPlus, Star, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface ClubsProps {
-  user: User;
+  user: User | null;
 }
 
 const Clubs: React.FC<ClubsProps> = ({ user }) => {
   const [clubs, setClubs] = useState(MOCK_CLUBS);
 
   // Logic for buttons based on role
-  const canMentor = user.role === 'faculty';
-  const canAddMembers = user.role === 'admin' || user.role === 'lead';
+  const canMentor = user?.role === 'faculty';
+  const canAddMembers = user?.role === 'admin' || user?.role === 'lead';
   
   const handleJoin = (clubName: string) => {
     alert(`Request sent to join ${clubName}`);
@@ -30,7 +30,7 @@ const Clubs: React.FC<ClubsProps> = ({ user }) => {
       className="pt-32 px-4 max-w-7xl mx-auto min-h-screen"
     >
       <div className="mb-12 text-center max-w-2xl mx-auto">
-        <h2 className="text-4xl font-bold text-slate-900">Student Communities</h2>
+        <h2 className="text-4xl font-display text-slate-900">Student Communities</h2>
         <p className="text-slate-500 mt-4 text-lg">
           Join a club to develop your skills, network with peers, and make your college life memorable.
         </p>
@@ -64,13 +64,23 @@ const Clubs: React.FC<ClubsProps> = ({ user }) => {
             </div>
 
             <div className="mt-auto w-full z-10 space-y-3">
-              <button 
-                onClick={() => handleJoin(club.name)}
-                className="w-full py-3 rounded-xl bg-slate-900 text-white font-medium shadow-lg hover:bg-slate-800 hover:shadow-slate-900/20 transition-all flex items-center justify-center space-x-2"
-              >
-                <UserPlus size={18} />
-                <span>Join Club</span>
-              </button>
+              {user ? (
+                <button 
+                  onClick={() => handleJoin(club.name)}
+                  className="w-full py-3 rounded-xl bg-slate-900 text-white font-medium shadow-lg hover:bg-slate-800 hover:shadow-slate-900/20 transition-all flex items-center justify-center space-x-2"
+                >
+                  <UserPlus size={18} />
+                  <span>Join Club</span>
+                </button>
+              ) : (
+                <button 
+                  disabled
+                  className="w-full py-3 rounded-xl bg-slate-100 text-slate-400 font-medium cursor-not-allowed flex items-center justify-center space-x-2"
+                >
+                  <Lock size={16} />
+                  <span>Login to Join</span>
+                </button>
+              )}
 
               {canMentor && (
                 <button 

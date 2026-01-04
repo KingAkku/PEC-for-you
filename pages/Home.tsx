@@ -3,7 +3,11 @@ import Hero from '../components/Hero';
 import NoticeBoard from '../components/NoticeBoard';
 import { motion } from 'framer-motion';
 
-const Home: React.FC = () => {
+interface HomeProps {
+  onNavigate: (view: string) => void;
+}
+
+const Home: React.FC<HomeProps> = ({ onNavigate }) => {
   return (
     <motion.div 
       initial={{ opacity: 0 }} 
@@ -11,8 +15,9 @@ const Home: React.FC = () => {
       exit={{ opacity: 0 }}
       className="min-h-screen"
     >
-      <Hero />
-      <div className="relative z-10 -mt-20">
+      <Hero onNavigate={onNavigate} />
+      {/* Removed negative margin so NoticeBoard starts below the full-screen Hero */}
+      <div className="relative z-10 bg-white/30 backdrop-blur-sm">
         <NoticeBoard />
       </div>
       
