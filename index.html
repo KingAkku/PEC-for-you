@@ -4,7 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PEC Portal</title>
-    <link rel="icon" type="image/svg+xml" href="/P.svg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,13 +20,9 @@
               glass: {
                 100: 'rgba(255, 255, 255, 0.1)',
                 200: 'rgba(255, 255, 255, 0.2)',
-                300: 'rgba(255, 255, 255, 0.4)',
+                300: 'rgba(255, 255, 255, 0.3)',
                 700: 'rgba(255, 255, 255, 0.7)',
               }
-            },
-            boxShadow: {
-              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
-              'glass-hover': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
             }
           }
         }
@@ -35,23 +30,23 @@
     </script>
     <style>
       body {
-        background-color: #fcfcfc;
+        background-color: #f8fafc; /* Slate 50 */
         background-image: 
-          radial-gradient(at 0% 0%, rgba(240, 240, 240, 0.8) 0px, transparent 50%),
-          radial-gradient(at 100% 100%, rgba(245, 245, 255, 0.8) 0px, transparent 50%);
+          radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%), 
+          radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.1) 0px, transparent 50%), 
+          radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
         background-attachment: fixed;
-        color: #0f172a;
       }
-      /* Clean Scrollbar */
+      /* Hide scrollbar for clean UI but keep functionality */
       ::-webkit-scrollbar {
-        width: 6px;
+        width: 8px;
       }
       ::-webkit-scrollbar-track {
         background: transparent; 
       }
       ::-webkit-scrollbar-thumb {
         background: #cbd5e1; 
-        border-radius: 10px;
+        border-radius: 4px;
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8; 
@@ -61,10 +56,10 @@
 {
   "imports": {
     "react": "https://esm.sh/react@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "framer-motion": "https://esm.sh/framer-motion@^12.23.26",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
   }
 }
 </script>
