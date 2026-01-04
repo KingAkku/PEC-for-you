@@ -32,7 +32,7 @@ const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack, user }) => {
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]" />
         </div>
 
-        <div className="absolute top-28 left-4 z-50">
+        <div className="absolute top-48 left-4 z-50">
           <button 
             onClick={onBack}
             className="bg-white/20 backdrop-blur-md border border-white/30 text-white p-3 rounded-full hover:bg-white/30 transition-all group"
