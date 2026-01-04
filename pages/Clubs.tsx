@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import ClubCard from '../components/ClubCard';
 import { supabase } from '../lib/supabase';
 import { Search } from 'lucide-react';
+import { MOCK_CLUBS } from '../constants';
 
 interface ClubsProps {
   user: User | null;
@@ -25,7 +26,7 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
         .from('clubs')
         .select('*');
       
-      if (data) {
+      if (data && data.length > 0) {
         const mappedClubs = data.map((c: any) => ({
           id: c.id,
           name: c.name,
@@ -36,10 +37,13 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
           image: c.image
         }));
         setClubs(mappedClubs);
+      } else {
+        if (error) console.warn("Error fetching clubs (Using fallback):", error.message);
+        setClubs(MOCK_CLUBS);
       }
-      if (error) throw error;
     } catch (error) {
-      console.error("Error fetching clubs:", error);
+      console.error("Unexpected error fetching clubs:", error);
+      setClubs(MOCK_CLUBS);
     } finally {
       setLoading(false);
     }

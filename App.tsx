@@ -10,6 +10,7 @@ import MyClub from './pages/MyClub';
 import AuthModal from './components/AuthModal';
 import FeedbackModal from './components/FeedbackModal';
 import { User, Club, Notice, Event } from './types';
+import { MOCK_NOTICES, MOCK_EVENTS } from './constants';
 import { AnimatePresence } from 'framer-motion';
 import { supabase } from './lib/supabase';
 
@@ -71,8 +72,13 @@ const App: React.FC = () => {
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (data) setNotices(data);
-    if (error) console.error("Error fetching notices:", error);
+    if (data && data.length > 0) {
+      setNotices(data);
+    } else {
+      // Fallback to mock data if DB is empty or error occurs
+      if (error) console.warn("Supabase fetch error (Notices):", error.message);
+      setNotices(MOCK_NOTICES);
+    }
   };
 
   const fetchEvents = async () => {
@@ -81,8 +87,8 @@ const App: React.FC = () => {
       .select('*')
       .order('created_at', { ascending: false });
       
-    if (data) {
-       // Map DB snake_case to camelCase if needed, though we kept table simple
+    if (data && data.length > 0) {
+       // Map DB snake_case to camelCase
        const mappedEvents = data.map((e: any) => ({
          id: e.id,
          title: e.title,
@@ -95,8 +101,11 @@ const App: React.FC = () => {
          category: e.category
        }));
        setEvents(mappedEvents);
+    } else {
+       // Fallback to mock data if DB is empty or error occurs
+       if (error) console.warn("Supabase fetch error (Events):", error.message);
+       setEvents(MOCK_EVENTS);
     }
-    if (error) console.error("Error fetching events:", error);
   };
 
   const fetchUserProfile = async (userId: string, email?: string, retryCount = 0) => {
@@ -108,6 +117,7 @@ const App: React.FC = () => {
         .single();
 
       if (error && retryCount < 3) {
+        // If error is strictly about connection, retry. If 406 or row missing, don't retry.
         setTimeout(() => fetchUserProfile(userId, email, retryCount + 1), 500);
         return;
       }
@@ -153,9 +163,9 @@ const App: React.FC = () => {
         }]);
     
     if (error) {
-        console.error("Failed to save notice:", error);
-        // Revert on failure (simplified)
-        fetchNotices();
+        console.error("Failed to save notice:", error.message);
+        // We don't revert here to keep the UI snappy for the demo, 
+        // but in prod you would revert the state or show a toast
     }
   };
 
@@ -178,8 +188,7 @@ const App: React.FC = () => {
         }]);
 
     if (error) {
-        console.error("Failed to save event:", error);
-        fetchEvents();
+        console.error("Failed to save event:", error.message);
     }
   };
 

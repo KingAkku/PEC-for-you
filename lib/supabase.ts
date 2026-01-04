@@ -1,27 +1,38 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Robustly retrieve environment variables in Vite
-// We use (import.meta as any) to avoid TypeScript errors if the types aren't perfectly set up
+// Robustly retrieve environment variables
 const getEnvVar = (key: string) => {
-  if (import.meta && (import.meta as any).env) {
-    return (import.meta as any).env[key] || '';
+  // 1. Check import.meta.env (Vite standard)
+  if (import.meta && (import.meta as any).env && (import.meta as any).env[key]) {
+    return (import.meta as any).env[key];
   }
+  
+  // 2. Check process.env (Next.js / Compatibility mode)
+  // Wrapped in try-catch because accessing 'process' can throw in some strict browser environments
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+      return process.env[key];
+    }
+  } catch (e) {
+    // Ignore
+  }
+
   return '';
 };
 
-const supabaseUrl = getEnvVar('VITE_SUPABASE_URL');
-const supabaseAnonKey = getEnvVar('VITE_SUPABASE_ANON_KEY');
+// Use the specific keys requested by the user
+const supabaseUrl = getEnvVar('NEXT_PUBLIC_SUPABASE_URL');
+const supabaseAnonKey = getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY');
 
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
-    'Supabase credentials missing! Please check your .env.local file has VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.'
+    'Supabase credentials missing! Please check your .env.local file has NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'
   );
 }
 
 // Initialize Supabase client
 // We use fallback values ('https://placeholder.supabase.co') to prevent the app from crashing 
-// immediately on load if keys are missing. This allows the UI to render and show specific 
-// authentication errors to the user instead of a blank white screen.
+// immediately on load if keys are missing.
 export const supabase = createClient(
   supabaseUrl || 'https://placeholder.supabase.co',
   supabaseAnonKey || 'placeholder'
