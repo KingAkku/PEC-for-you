@@ -261,8 +261,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2">
                       Select Role
                     </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {(['student', 'lead', 'faculty', 'admin'] as Role[]).map((r) => (
+                    <div className="grid grid-cols-3 gap-2">
+                      {(['student', 'lead', 'faculty'] as Role[]).map((r) => (
                         <button
                           key={r}
                           type="button"
