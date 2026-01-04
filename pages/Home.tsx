@@ -1,14 +1,17 @@
+
 import React from 'react';
 import Hero from '../components/Hero';
 import NoticeBoard from '../components/NoticeBoard';
 import { motion } from 'framer-motion';
 import { Bell, Calendar, Users, ArrowRight } from 'lucide-react';
+import { User } from '../types';
 
 interface HomeProps {
   onNavigate: (view: string) => void;
+  user?: User | null;
 }
 
-const Home: React.FC<HomeProps> = ({ onNavigate }) => {
+const Home: React.FC<HomeProps> = ({ onNavigate, user }) => {
   
   const scrollToNotices = () => {
     const element = document.getElementById('notice-board');
@@ -27,7 +30,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate }) => {
       <Hero onNavigate={onNavigate} />
       {/* Removed negative margin so NoticeBoard starts below the full-screen Hero */}
       <div className="relative z-10 bg-white/30 backdrop-blur-sm">
-        <NoticeBoard />
+        <NoticeBoard user={user} />
       </div>
       
       {/* Quick Stats Section */}

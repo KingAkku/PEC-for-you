@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -5,6 +6,8 @@ import Home from './pages/Home';
 import Events from './pages/Events';
 import Clubs from './pages/Clubs';
 import ClubDetail from './pages/ClubDetail';
+import Dashboard from './pages/Dashboard';
+import MyClub from './pages/MyClub';
 import AuthModal from './components/AuthModal';
 import FeedbackModal from './components/FeedbackModal';
 import { User, Club } from './types';
@@ -33,7 +36,7 @@ const App: React.FC = () => {
   const renderView = () => {
     switch (currentView) {
       case 'home':
-        return <Home onNavigate={handleViewChange} />;
+        return <Home onNavigate={handleViewChange} user={currentUser} />;
       case 'events':
         return <Events user={currentUser} />;
       case 'clubs':
@@ -48,8 +51,20 @@ const App: React.FC = () => {
         ) : (
           <Clubs user={currentUser} onViewClub={handleNavigateToClub} />
         );
+      case 'dashboard':
+        // Protected route for Admin/Faculty
+        if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'faculty')) {
+           return <Dashboard user={currentUser} />;
+        }
+        return <Home onNavigate={handleViewChange} user={currentUser} />;
+      case 'my-club':
+        // Protected route for Lead
+        if (currentUser && currentUser.role === 'lead') {
+           return <MyClub user={currentUser} />;
+        }
+        return <Home onNavigate={handleViewChange} user={currentUser} />;
       default:
-        return <Home onNavigate={handleViewChange} />;
+        return <Home onNavigate={handleViewChange} user={currentUser} />;
     }
   };
 

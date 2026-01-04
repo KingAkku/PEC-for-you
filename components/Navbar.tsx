@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { User, Role } from '../types';
-import { Menu, X, Bell, User as UserIcon, LogOut, ChevronDown, LayoutGrid, Calendar, Users } from 'lucide-react';
+import { Menu, X, Bell, User as UserIcon, LogOut, ChevronDown, LayoutGrid, Calendar, Users, BarChart3, Shield } from 'lucide-react';
 import { DEMO_USERS } from '../constants';
 
 interface NavbarProps {
@@ -25,20 +26,29 @@ const Navbar: React.FC<NavbarProps> = ({
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isProfileOpen, setIsProfileOpen] = React.useState(false);
 
-  const navLinks = [
+  // Base links available to everyone
+  const baseLinks = [
     { name: 'Home', id: 'home', icon: LayoutGrid },
     { name: 'Events', id: 'events', icon: Calendar },
     { name: 'Clubs', id: 'clubs', icon: Users },
   ];
 
-  const getRoleBadgeColor = (role: Role) => {
-    switch(role) {
-      case 'admin': return 'bg-red-100 text-red-700 border-red-200';
-      case 'faculty': return 'bg-purple-100 text-purple-700 border-purple-200';
-      case 'lead': return 'bg-blue-100 text-blue-700 border-blue-200';
-      default: return 'bg-gray-100 text-gray-700 border-gray-200';
+  // Dynamic links based on role
+  const getNavLinks = () => {
+    const links = [...baseLinks];
+    
+    if (currentUser) {
+      if (currentUser.role === 'admin' || currentUser.role === 'faculty') {
+        links.push({ name: 'Dashboard', id: 'dashboard', icon: BarChart3 });
+      }
+      if (currentUser.role === 'lead') {
+        links.push({ name: 'My Club', id: 'my-club', icon: Shield });
+      }
     }
+    return links;
   };
+
+  const navLinks = getNavLinks();
 
   return (
     <nav className={`fixed top-4 left-4 right-4 z-50 rounded-2xl bg-white/80 backdrop-blur-xl border border-white/40 shadow-lg px-6 transition-all duration-300 ${isMobileMenuOpen ? 'h-auto' : 'h-[72px]'}`}>

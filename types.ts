@@ -1,3 +1,4 @@
+
 export type Role = 'admin' | 'faculty' | 'lead' | 'student';
 
 export interface User {
@@ -5,6 +6,8 @@ export interface User {
   name: string;
   role: Role;
   clubId?: string; // If lead or mentor
+  department?: string;
+  email?: string;
 }
 
 export interface Notice {

@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
-import { X, Mail, Lock, User as UserIcon, ArrowRight, ChevronRight } from 'lucide-react';
+import { X, Mail, Lock, User as UserIcon, ArrowRight, ChevronRight, BookOpen } from 'lucide-react';
 import { User, Role } from '../types';
-import { DEMO_USERS } from '../constants';
+import { DEMO_USERS, DEPARTMENTS } from '../constants';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -14,6 +15,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [selectedRole, setSelectedRole] = useState<Role>('student');
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDept, setSelectedDept] = useState(DEPARTMENTS[0]);
 
   // Sync mode if initialMode changes when reopening (optional, but good practice)
   React.useEffect(() => {
@@ -31,6 +33,10 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
       // For demo purposes, we pick a user from DEMO_USERS based on the selected role
       // In a real app, this would be backend validation
       const mockUser = DEMO_USERS.find(u => u.role === selectedRole) || DEMO_USERS[3];
+      // Inject selected department if signup
+      if (mode === 'signup') {
+        mockUser.department = selectedDept;
+      }
       onLogin(mockUser);
       setIsLoading(false);
       onClose();
@@ -68,18 +74,37 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {mode === 'signup' && (
-              <div className="space-y-1">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Full Name</label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                  <input 
-                    type="text" 
-                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                    placeholder="John Doe"
-                    required
-                  />
+              <>
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Full Name</label>
+                  <div className="relative">
+                    <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <input 
+                      type="text" 
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      placeholder="John Doe"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wide">Department</label>
+                  <div className="relative">
+                    <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                    <select
+                      value={selectedDept}
+                      onChange={(e) => setSelectedDept(e.target.value)}
+                      className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none text-slate-700"
+                    >
+                      {DEPARTMENTS.map(dept => (
+                        <option key={dept} value={dept}>{dept}</option>
+                      ))}
+                    </select>
+                    <ChevronRight className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 rotate-90" size={16} />
+                  </div>
+                </div>
+              </>
             )}
 
             <div className="space-y-1">

@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { MOCK_NOTICES } from '../constants';
-import { Notice } from '../types';
-import { AlertCircle, Calendar, FileText, Zap } from 'lucide-react';
+import { Notice, User } from '../types';
+import { AlertCircle, Calendar, FileText, Zap, PlusCircle } from 'lucide-react';
 
 const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
   const getIcon = () => {
@@ -40,10 +41,20 @@ const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
   );
 };
 
-const NoticeBoard: React.FC = () => {
+interface NoticeBoardProps {
+    user?: User | null;
+}
+
+const NoticeBoard: React.FC<NoticeBoardProps> = ({ user }) => {
+  const canPost = user && (user.role === 'admin' || user.role === 'faculty');
+
+  const handlePostNotice = () => {
+      alert("Post Notice Modal would open here.");
+  }
+
   return (
     <section id="notice-board" className="py-20 px-4 max-w-7xl mx-auto scroll-mt-24">
-      <div className="flex flex-col md:flex-row justify-between items-end mb-10">
+      <div className="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <span className="relative flex h-4 w-4">
@@ -54,7 +65,18 @@ const NoticeBoard: React.FC = () => {
           </div>
           <p className="text-slate-500 mt-2">Latest updates, emergency alerts, and scholarship deadlines.</p>
         </div>
-        <button className="hidden md:block text-blue-600 font-medium hover:underline">View Archived &rarr;</button>
+        <div className="flex items-center gap-4">
+            {canPost && (
+                <button 
+                    onClick={handlePostNotice}
+                    className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-black transition-colors shadow-md"
+                >
+                    <PlusCircle size={18} />
+                    <span>Post Notice</span>
+                </button>
+            )}
+            <button className="hidden md:block text-blue-600 font-medium hover:underline">View Archived &rarr;</button>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
