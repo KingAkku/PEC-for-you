@@ -6,8 +6,10 @@ import Events from './pages/Events';
 import Clubs from './pages/Clubs';
 import ClubDetail from './pages/ClubDetail';
 import AuthModal from './components/AuthModal';
+import FeedbackModal from './components/FeedbackModal';
 import { User, Club } from './types';
 import { AnimatePresence } from 'framer-motion';
+import { Settings } from 'lucide-react';
 
 const App: React.FC = () => {
   // Start with no user (null) instead of a demo user
@@ -15,6 +17,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState('home');
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   const handleNavigateToClub = (club: Club) => {
@@ -63,9 +66,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="font-sans text-slate-900 antialiased selection:bg-slate-900 selection:text-white">
-      {/* Hide Navbar on detail page for immersive feel, or keep it. Let's keep it but maybe different style? 
-          Actually standard navbar is good for consistency. */}
+    <div className="font-sans text-slate-900 antialiased selection:bg-slate-900 selection:text-white relative">
       <Navbar 
         currentUser={currentUser} 
         onSwitchUser={setCurrentUser} 
@@ -89,8 +90,19 @@ const App: React.FC = () => {
         onLogin={setCurrentUser}
       />
 
-      {/* Only show Footer on main pages, maybe not detail if we want infinite scroll feel, 
-          but usually footer is good everywhere. */}
+      <FeedbackModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
+
+      {/* Floating Feedback Button */}
+      <button 
+        onClick={() => setIsFeedbackModalOpen(true)}
+        className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform cursor-pointer group"
+      >
+        <Settings size={24} className="group-hover:rotate-90 transition-transform duration-500" />
+      </button>
+
       <Footer />
     </div>
   );

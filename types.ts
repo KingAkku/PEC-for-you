@@ -24,6 +24,7 @@ export interface Event {
   organizer: string;
   imageUrl?: string;
   registeredCount: number;
+  category: 'Technical' | 'Cultural' | 'Workshop' | 'Seminar' | 'Hackathon';
 }
 
 export interface Club {

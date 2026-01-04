@@ -10,9 +10,11 @@ export const MOCK_NOTICES: Notice[] = [
 ];
 
 export const MOCK_EVENTS: Event[] = [
-  { id: '1', title: 'Tech Summit 2024', description: 'A gathering of the brightest minds in engineering.', date: 'Nov 15, 2024', location: 'Main Auditorium', organizer: 'IEEE', registeredCount: 120, imageUrl: 'https://picsum.photos/400/200' },
-  { id: '2', title: 'Startup Pitch Deck', description: 'Pitch your ideas to top investors and alumni.', date: 'Nov 20, 2024', location: 'Seminar Hall', organizer: 'IEDC', registeredCount: 45, imageUrl: 'https://picsum.photos/400/201' },
-  { id: '3', title: 'Python Workshop', description: 'Hands-on session on Python for Data Science.', date: 'Nov 22, 2024', location: 'Computer Lab 2', organizer: 'Mulearn', registeredCount: 80, imageUrl: 'https://picsum.photos/400/202' },
+  { id: '1', title: 'Tech Summit 2024', description: 'A gathering of the brightest minds in engineering.', date: 'Nov 15, 2024', location: 'Main Auditorium', organizer: 'IEEE', registeredCount: 120, imageUrl: 'https://picsum.photos/400/200', category: 'Seminar' },
+  { id: '2', title: 'Startup Pitch Deck', description: 'Pitch your ideas to top investors and alumni.', date: 'Nov 20, 2024', location: 'Seminar Hall', organizer: 'IEDC', registeredCount: 45, imageUrl: 'https://picsum.photos/400/201', category: 'Workshop' },
+  { id: '3', title: 'Python Workshop', description: 'Hands-on session on Python for Data Science.', date: 'Nov 22, 2024', location: 'Computer Lab 2', organizer: 'Mulearn', registeredCount: 80, imageUrl: 'https://picsum.photos/400/202', category: 'Technical' },
+  { id: '4', title: 'Cultural Fest Auditions', description: 'Auditions for the upcoming annual arts festival.', date: 'Nov 25, 2024', location: 'Open Air Theatre', organizer: 'College Union', registeredCount: 200, imageUrl: 'https://picsum.photos/400/203', category: 'Cultural' },
+  { id: '5', title: 'Hack-a-Future', description: '24 Hour coding hackathon to solve real world problems.', date: 'Dec 01, 2024', location: 'Main Block', organizer: 'CSI', registeredCount: 150, imageUrl: 'https://picsum.photos/400/204', category: 'Hackathon' },
 ];
 
 export const MOCK_CLUBS: Club[] = [

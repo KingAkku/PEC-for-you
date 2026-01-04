@@ -1,7 +1,7 @@
 import React from 'react';
 import { Club, User } from '../types';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Users, Calendar, Award, UserPlus, Globe, Mail, Instagram, Linkedin, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, Award, UserPlus, Globe, Mail, Instagram, Linkedin, MessageSquare, ExternalLink } from 'lucide-react';
 import { MOCK_EVENTS } from '../constants';
 
 interface ClubDetailProps {
@@ -41,11 +41,15 @@ const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack, user }) => {
           </button>
         </div>
 
-        <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 z-20">
+        {/* Content Container */}
+        <div className="absolute bottom-0 left-0 right-0 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12 z-20 flex flex-col md:flex-row items-end justify-between gap-8">
+          
+          {/* Left Side: Title & Stats */}
           <motion.div 
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
+            className="flex-1"
           >
             <span className="bg-blue-500/20 backdrop-blur-md border border-blue-400/30 text-blue-100 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest mb-4 inline-block shadow-sm">
               {club.category}
@@ -66,6 +70,22 @@ const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack, user }) => {
               </div>
             </div>
           </motion.div>
+
+          {/* Right Side: CTA Buttons */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 w-full md:w-auto"
+          >
+            <button className="px-8 py-3.5 bg-white text-slate-900 rounded-full font-bold hover:bg-slate-100 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2 whitespace-nowrap">
+              Join Community
+            </button>
+            <button className="px-8 py-3.5 bg-black/30 backdrop-blur-md border border-white/20 text-white rounded-full font-bold hover:bg-black/50 transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+              Visit Website <ExternalLink size={16} />
+            </button>
+          </motion.div>
+
         </div>
       </div>
 
