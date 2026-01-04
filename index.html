@@ -21,9 +21,13 @@
               glass: {
                 100: 'rgba(255, 255, 255, 0.1)',
                 200: 'rgba(255, 255, 255, 0.2)',
-                300: 'rgba(255, 255, 255, 0.3)',
+                300: 'rgba(255, 255, 255, 0.4)',
                 700: 'rgba(255, 255, 255, 0.7)',
               }
+            },
+            boxShadow: {
+              'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+              'glass-hover': '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
             }
           }
         }
@@ -31,23 +35,23 @@
     </script>
     <style>
       body {
-        background-color: #f8fafc; /* Slate 50 */
+        background-color: #fcfcfc;
         background-image: 
-          radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%), 
-          radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.1) 0px, transparent 50%), 
-          radial-gradient(at 100% 100%, rgba(236, 72, 153, 0.05) 0px, transparent 50%);
+          radial-gradient(at 0% 0%, rgba(240, 240, 240, 0.8) 0px, transparent 50%),
+          radial-gradient(at 100% 100%, rgba(245, 245, 255, 0.8) 0px, transparent 50%);
         background-attachment: fixed;
+        color: #0f172a;
       }
-      /* Hide scrollbar for clean UI but keep functionality */
+      /* Clean Scrollbar */
       ::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
       }
       ::-webkit-scrollbar-track {
         background: transparent; 
       }
       ::-webkit-scrollbar-thumb {
         background: #cbd5e1; 
-        border-radius: 4px;
+        border-radius: 10px;
       }
       ::-webkit-scrollbar-thumb:hover {
         background: #94a3b8; 
@@ -56,20 +60,17 @@
   <script type="importmap">
 {
   "imports": {
-    "@vercel/analytics/": "https://esm.sh/@vercel/analytics@^1.6.1/",
-    "react/": "https://esm.sh/react@^19.2.3/",
     "react": "https://esm.sh/react@^19.2.3",
-    "framer-motion": "https://esm.sh/framer-motion@^12.23.26",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "vite": "https://esm.sh/vite@^7.3.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "framer-motion": "https://esm.sh/framer-motion@^12.23.26",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
   </body>
 </html>

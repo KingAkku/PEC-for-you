@@ -1,9 +1,9 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CLUB_NAMES } from '../constants';
 import { HeroPopup } from '../types';
 import { getRandomColor, getContrastColor, getRandomInt } from '../utils';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Sparkles } from 'lucide-react';
 
 interface HeroProps {
   onNavigate: (view: string) => void;
@@ -15,11 +15,8 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   
   const handleMouseMove = (e: React.MouseEvent) => {
-    // Only trigger popup logic if target is the container itself or the background layer
-    // This prevents popups from spawning when hovering over buttons
     const target = e.target as HTMLElement;
     if (target.closest('button')) return;
-
     if (!containerRef.current) return;
 
     const currentX = e.clientX;
@@ -28,11 +25,8 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
     if (lastMousePos.current) {
       const deltaX = Math.abs(currentX - lastMousePos.current.x);
       
-      // If moved enough horizontally
       if (deltaX > 40) { 
         const rect = containerRef.current.getBoundingClientRect();
-        
-        // Only spawn if within bounds
         if (
           currentX >= rect.left && 
           currentX <= rect.right && 
@@ -50,14 +44,15 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
 
   const spawnPopup = (x: number, y: number) => {
     const text = CLUB_NAMES[Math.floor(Math.random() * CLUB_NAMES.length)];
-    const bgColor = getRandomColor();
-    const textColor = getContrastColor(bgColor);
-    const borderRadius = getRandomInt(0, 10);
+    // Premium color palette for popups
+    const colors = ['#0f172a', '#334155', '#475569', '#1e293b']; 
+    const bgColor = colors[Math.floor(Math.random() * colors.length)];
+    const textColor = '#ffffff';
+    const borderRadius = 50; 
     const id = Date.now() + Math.random();
 
-    // Offset slightly so it doesn't appear exactly under cursor masking the text below too much
-    const offsetX = getRandomInt(-50, 50);
-    const offsetY = getRandomInt(-50, 50);
+    const offsetX = getRandomInt(-40, 40);
+    const offsetY = getRandomInt(-40, 40);
 
     const newPopup: HeroPopup = {
       id,
@@ -69,50 +64,67 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
       borderRadius
     };
 
-    setPopups((prev) => [...prev.slice(-8), newPopup]); // Keep last 8 to avoid DOM overload
+    setPopups((prev) => [...prev.slice(-6), newPopup]);
 
-    // Auto remove after animation
     setTimeout(() => {
       setPopups((prev) => prev.filter((p) => p.id !== id));
-    }, 2000);
+    }, 1500);
   };
 
   return (
     <div 
       ref={containerRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden cursor-crosshair"
+      className="relative w-full h-screen flex flex-col items-center justify-center overflow-hidden cursor-default bg-white"
     >
-      <div className="absolute inset-0 -z-10 bg-white/30 backdrop-blur-sm"></div>
+      {/* Abstract Background Elements */}
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_50%,rgba(120,119,198,0.1),rgba(255,255,255,0))]" />
+      <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-100/30 rounded-full blur-3xl" />
 
       {/* Main Text */}
-      <div className="z-10 text-center select-none pointer-events-none p-4 mt-10">
-        <h1 className="font-display text-[15vw] leading-none text-slate-900 drop-shadow-2xl opacity-90 tracking-tight">
-          PEC Portal
-        </h1>
-        <p className="mt-4 text-xl md:text-2xl text-slate-600 font-light tracking-wide">
-          College of Engineering, Pathanapuram
-        </p>
-        <p className="mt-2 text-sm text-slate-400 uppercase tracking-widest">
-          Connect &bull; Create &bull; Collaborate
-        </p>
+      <div className="z-10 text-center select-none p-4 mt-10 max-w-5xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="flex flex-col items-center"
+        >
+          <div className="mb-6 flex items-center space-x-2 bg-slate-50 border border-slate-100 px-4 py-1.5 rounded-full shadow-sm">
+            <Sparkles size={14} className="text-yellow-500" />
+            <span className="text-xs font-bold tracking-widest uppercase text-slate-500">The Future of Campus Life</span>
+          </div>
+          
+          <h1 className="font-display text-[12vw] md:text-[9rem] leading-[0.9] text-slate-900 tracking-tighter mix-blend-multiply">
+            PEC<span className="text-slate-200">PORTAL</span>
+          </h1>
+          
+          <p className="mt-8 text-xl md:text-2xl text-slate-500 font-light tracking-wide max-w-2xl mx-auto leading-relaxed">
+            The central hub for <span className="text-slate-900 font-medium">events</span>, <span className="text-slate-900 font-medium">clubs</span>, and <span className="text-slate-900 font-medium">culture</span> at College of Engineering, Pathanapuram.
+          </p>
+        </motion.div>
       </div>
 
       {/* CTA Buttons */}
-      <div className="z-30 mt-12 flex flex-col sm:flex-row items-center gap-5 animate-in slide-in-from-bottom-6 fade-in duration-1000 delay-200">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.5, duration: 0.8 }}
+        className="z-30 mt-12 flex flex-col sm:flex-row items-center gap-6"
+      >
         <button 
           onClick={() => onNavigate('events')} 
-          className="group px-8 py-4 bg-slate-900 text-white rounded-full font-medium transition-all hover:bg-black hover:scale-105 flex items-center gap-2 shadow-xl hover:shadow-slate-900/25 cursor-pointer"
+          className="group px-10 py-5 bg-slate-900 text-white rounded-full font-medium transition-all hover:bg-black hover:scale-105 flex items-center gap-3 shadow-2xl hover:shadow-slate-900/25"
         >
           Explore Events <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
         </button>
         <button 
           onClick={() => onNavigate('clubs')}
-          className="px-8 py-4 bg-white/50 backdrop-blur-md border border-white/50 text-slate-900 rounded-full font-medium hover:bg-white/80 transition-all hover:shadow-lg hover:scale-105 cursor-pointer"
+          className="px-10 py-5 bg-white text-slate-900 rounded-full font-medium hover:bg-slate-50 transition-all border border-slate-200 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:scale-105"
         >
           Join a Club
         </button>
-      </div>
+      </motion.div>
 
       {/* Popups Layer */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -120,10 +132,10 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
           {popups.map((popup) => (
             <motion.div
               key={popup.id}
-              initial={{ width: 0, opacity: 0, x: popup.x, y: popup.y }}
-              animate={{ width: 'auto', opacity: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.4, ease: "easeOut" }}
+              initial={{ opacity: 0, scale: 0.5, x: popup.x, y: popup.y }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.3, ease: "backOut" }}
               style={{
                 position: 'absolute',
                 left: 0,
@@ -131,21 +143,14 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
                 backgroundColor: popup.bgColor,
                 color: popup.textColor,
                 borderRadius: `${popup.borderRadius}px`,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
                 zIndex: 20,
-                boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
               }}
-              className="h-12 flex items-center px-6 text-lg font-bold shadow-xl border border-white/20"
+              className="px-5 py-2 text-sm font-bold shadow-2xl tracking-wide backdrop-blur-md bg-opacity-90"
             >
               {popup.text}
             </motion.div>
           ))}
         </AnimatePresence>
-      </div>
-
-      <div className="absolute bottom-10 animate-bounce text-slate-400 text-sm pointer-events-none">
-        Hover to explore
       </div>
     </div>
   );
