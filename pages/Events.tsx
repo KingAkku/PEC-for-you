@@ -1,25 +1,51 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { MOCK_EVENTS } from '../constants';
-import { User } from '../types';
-import { Calendar, MapPin, Users, Plus, ArrowRight, Search, Filter } from 'lucide-react';
+import { User, Event } from '../types';
+import { MOCK_CLUBS } from '../constants';
+import { Calendar, MapPin, Users, Plus, ArrowRight, Search, Filter, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EventsProps {
   user: User | null;
+  events: Event[];
+  onAddEvent: (event: Event) => void;
 }
 
 const CATEGORIES = ['All', 'Technical', 'Cultural', 'Workshop', 'Seminar', 'Hackathon'];
 
-const Events: React.FC<EventsProps> = ({ user }) => {
-  const [events] = useState(MOCK_EVENTS);
+const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClub, setSelectedClub] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
+  // Form State
+  const [formData, setFormData] = useState({
+      title: '',
+      date: '',
+      description: '',
+      location: '',
+      category: 'Technical' as Event['category'],
+      organizer: '',
+      imageUrl: 'https://picsum.photos/400/205' // Default random placeholder
+  });
+
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Set default organizer based on user role when modal opens
+  useEffect(() => {
+      if (showCreateModal && user) {
+          let defaultOrganizer = '';
+          if (user.role === 'lead' && user.clubId) {
+             const club = MOCK_CLUBS.find(c => c.id === user.clubId);
+             defaultOrganizer = club ? club.name : '';
+          } else if (user.role === 'faculty') {
+              defaultOrganizer = user.department || 'Faculty';
+          }
+          setFormData(prev => ({ ...prev, organizer: defaultOrganizer }));
+      }
+  }, [showCreateModal, user]);
 
   // Authorization check: Admin, Faculty, and Leads can create events
   const canCreateEvent = user && ['admin', 'faculty', 'lead'].includes(user.role);
@@ -39,6 +65,34 @@ const Events: React.FC<EventsProps> = ({ user }) => {
     
     return matchesSearch && matchesClub && matchesCategory;
   });
+
+  const handleCreateSubmit = (e: React.FormEvent) => {
+      e.preventDefault();
+      const newEvent: Event = {
+          id: Date.now().toString(),
+          title: formData.title,
+          date: formData.date, // In real app, format this nicely
+          description: formData.description,
+          location: formData.location,
+          category: formData.category,
+          organizer: formData.organizer || 'Unknown',
+          imageUrl: formData.imageUrl,
+          registeredCount: 0
+      };
+      onAddEvent(newEvent);
+      setShowCreateModal(false);
+      // Reset form
+      setFormData({
+        title: '',
+        date: '',
+        description: '',
+        location: '',
+        category: 'Technical',
+        organizer: '',
+        imageUrl: 'https://picsum.photos/400/205'
+      });
+      alert("Event Published Successfully!");
+  };
 
   return (
     <motion.div 
@@ -147,8 +201,8 @@ const Events: React.FC<EventsProps> = ({ user }) => {
 
                 {/* Date Block */}
                 <div className="hidden md:flex flex-col items-center justify-center w-24 shrink-0 border-r border-slate-100 pr-6">
-                  <span className="text-3xl font-display text-slate-900">{event.date.split(' ')[1].replace(',', '')}</span>
-                  <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">{event.date.split(' ')[0]}</span>
+                  {/* Handle potentially unformatted dates gracefully */}
+                  <span className="text-xl font-display text-slate-900 break-words text-center">{event.date}</span>
                 </div>
 
                 {/* Content */}
@@ -157,11 +211,6 @@ const Events: React.FC<EventsProps> = ({ user }) => {
                   <p className="text-slate-500 text-sm mb-6 max-w-2xl line-clamp-2">{event.description}</p>
                   
                   <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-sm font-medium text-slate-500">
-                    <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                      <Calendar size={16} className="text-slate-400" />
-                      <span className="md:hidden">{event.date}</span>
-                      <span className="hidden md:inline">Time TBA</span>
-                    </div>
                     <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
                       <MapPin size={16} className="text-slate-400" />
                       <span>{event.location}</span>
@@ -213,26 +262,93 @@ const Events: React.FC<EventsProps> = ({ user }) => {
 
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-md">
-          <div className="bg-white rounded-[2rem] shadow-2xl p-8 w-full max-w-md animate-in zoom-in-95 duration-200 border border-white/50">
+          <div className="bg-white rounded-[2rem] shadow-2xl p-8 w-full max-w-lg animate-in zoom-in-95 duration-200 border border-white/50 relative overflow-y-auto max-h-[90vh]">
+            <button 
+                onClick={() => setShowCreateModal(false)}
+                className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+            >
+                <X size={20} />
+            </button>
             <h3 className="text-2xl font-bold text-slate-900 mb-6 font-display">Create New Event</h3>
-            <div className="space-y-4">
+            <form onSubmit={handleCreateSubmit} className="space-y-4">
                <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Event Title</label>
-                <input type="text" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" placeholder="e.g. Hackathon 2024" />
+                <input 
+                    type="text" 
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                    placeholder="e.g. Hackathon 2024" 
+                    value={formData.title}
+                    onChange={(e) => setFormData({...formData, title: e.target.value})}
+                />
                </div>
+               
+               <div className="grid grid-cols-2 gap-4">
+                   <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Date</label>
+                    <input 
+                        type="date" 
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                        value={formData.date}
+                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    />
+                   </div>
+                   <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Category</label>
+                    <select
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50"
+                        value={formData.category}
+                        onChange={(e) => setFormData({...formData, category: e.target.value as Event['category']})}
+                    >
+                        {CATEGORIES.filter(c => c !== 'All').map(c => (
+                            <option key={c} value={c}>{c}</option>
+                        ))}
+                    </select>
+                   </div>
+               </div>
+
                <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Date</label>
-                <input type="date" className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" />
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Location</label>
+                <input 
+                    type="text" 
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                    placeholder="e.g. Main Auditorium"
+                    value={formData.location}
+                    onChange={(e) => setFormData({...formData, location: e.target.value})}
+                />
                </div>
+
+               <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Organizer</label>
+                <input 
+                    type="text" 
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                    placeholder="Club or Dept Name"
+                    value={formData.organizer}
+                    onChange={(e) => setFormData({...formData, organizer: e.target.value})}
+                />
+               </div>
+
                <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Description</label>
-                <textarea className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" rows={3}></textarea>
+                <textarea 
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                    rows={3}
+                    placeholder="Event details..."
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                ></textarea>
                </div>
-            </div>
-            <div className="flex justify-end space-x-3 mt-8">
-              <button onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-slate-500 hover:text-slate-900 font-bold text-sm">Cancel</button>
-              <button onClick={() => { alert('Event Created!'); setShowCreateModal(false); }} className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black shadow-lg">Publish</button>
-            </div>
+
+               <div className="flex justify-end space-x-3 mt-8">
+                  <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-slate-500 hover:text-slate-900 font-bold text-sm">Cancel</button>
+                  <button type="submit" className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black shadow-lg">Publish</button>
+               </div>
+            </form>
           </div>
         </div>
       )}
