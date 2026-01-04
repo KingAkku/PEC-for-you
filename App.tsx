@@ -10,7 +10,6 @@ import MyClub from './pages/MyClub';
 import AuthModal from './components/AuthModal';
 import FeedbackModal from './components/FeedbackModal';
 import { User, Club, Notice, Event } from './types';
-import { MOCK_NOTICES, MOCK_EVENTS } from './constants';
 import { AnimatePresence } from 'framer-motion';
 import { supabase } from './lib/supabase';
 
@@ -24,49 +23,81 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(true);
 
-  // Lifted State for Dynamic Updates
-  const [notices, setNotices] = useState<Notice[]>(MOCK_NOTICES);
-  const [events, setEvents] = useState<Event[]>(MOCK_EVENTS);
+  // Real Data State
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
 
-  // Initialize Supabase Auth Listener
+  // Initialize Supabase Auth & Fetch Data
   useEffect(() => {
-    // 1. Check active session on startup
-    const checkUser = async () => {
+    const initializeApp = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
-        
-        if (data.session) {
-          await fetchUserProfile(data.session.user.id, data.session.user.email);
-        } else {
-          setLoading(false);
+        // 1. Check Session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (session) {
+          await fetchUserProfile(session.user.id, session.user.email);
         }
+
+        // 2. Fetch Content (Notices & Events)
+        await Promise.all([fetchNotices(), fetchEvents()]);
+        
       } catch (err) {
-        console.error("Auth initialization failed:", err);
-        setLoading(false); // Allow app to load even if auth fails
+        console.error("Initialization failed:", err);
+      } finally {
+        setLoading(false);
       }
     };
 
-    checkUser();
+    initializeApp();
 
-    // 2. Listen for changes (Login, Logout, Auto-refresh)
+    // Listen for Auth Changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session) {
-        // If SIGNED_IN (especially from signup), wait a moment for profile creation
         if (event === 'SIGNED_IN') {
-           // Small delay to allow profile insertion to complete if this was a new signup
            setTimeout(() => fetchUserProfile(session.user.id, session.user.email), 500);
         } else {
            await fetchUserProfile(session.user.id, session.user.email);
         }
       } else {
         setCurrentUser(null);
-        setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchNotices = async () => {
+    const { data, error } = await supabase
+      .from('notices')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (data) setNotices(data);
+    if (error) console.error("Error fetching notices:", error);
+  };
+
+  const fetchEvents = async () => {
+    const { data, error } = await supabase
+      .from('events')
+      .select('*')
+      .order('created_at', { ascending: false });
+      
+    if (data) {
+       // Map DB snake_case to camelCase if needed, though we kept table simple
+       const mappedEvents = data.map((e: any) => ({
+         id: e.id,
+         title: e.title,
+         description: e.description,
+         date: e.date,
+         location: e.location,
+         organizer: e.organizer,
+         imageUrl: e.image_url,
+         registeredCount: e.registered_count,
+         category: e.category
+       }));
+       setEvents(mappedEvents);
+    }
+    if (error) console.error("Error fetching events:", error);
+  };
 
   const fetchUserProfile = async (userId: string, email?: string, retryCount = 0) => {
     try {
@@ -77,13 +108,11 @@ const App: React.FC = () => {
         .single();
 
       if (error && retryCount < 3) {
-        // If error (likely 'no rows found' during fast signup), retry a few times
         setTimeout(() => fetchUserProfile(userId, email, retryCount + 1), 500);
         return;
       }
 
       if (data) {
-        // Map Supabase profile to our App's User type
         const appUser: User = {
           id: data.id,
           name: data.name,
@@ -96,12 +125,9 @@ const App: React.FC = () => {
       }
     } catch (error) {
       console.error("Unexpected error fetching profile:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Wrapper to handle view changes and scroll reset
   const handleViewChange = (view: string) => {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -112,13 +138,49 @@ const App: React.FC = () => {
     handleViewChange('club-detail');
   };
 
-  // Handlers for creating content
-  const handleAddNotice = (notice: Notice) => {
+  // Create Notice in DB
+  const handleAddNotice = async (notice: Notice) => {
+    // Optimistic update
     setNotices(prev => [notice, ...prev]);
+
+    const { error } = await supabase
+        .from('notices')
+        .insert([{
+            title: notice.title,
+            content: notice.content,
+            date: notice.date,
+            category: notice.category
+        }]);
+    
+    if (error) {
+        console.error("Failed to save notice:", error);
+        // Revert on failure (simplified)
+        fetchNotices();
+    }
   };
 
-  const handleAddEvent = (event: Event) => {
+  // Create Event in DB
+  const handleAddEvent = async (event: Event) => {
+    // Optimistic update
     setEvents(prev => [event, ...prev]);
+
+    const { error } = await supabase
+        .from('events')
+        .insert([{
+            title: event.title,
+            description: event.description,
+            date: event.date,
+            location: event.location,
+            organizer: event.organizer,
+            image_url: event.imageUrl,
+            category: event.category,
+            registered_count: 0
+        }]);
+
+    if (error) {
+        console.error("Failed to save event:", error);
+        fetchEvents();
+    }
   };
 
   const renderView = () => {
@@ -161,7 +223,6 @@ const App: React.FC = () => {
           <Clubs user={currentUser} onViewClub={handleNavigateToClub} />
         );
       case 'dashboard':
-        // Protected route for Admin/Faculty
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'faculty')) {
            return <Dashboard user={currentUser} />;
         }
@@ -174,7 +235,6 @@ const App: React.FC = () => {
           />
         );
       case 'my-club':
-        // Protected route for Lead
         if (currentUser && currentUser.role === 'lead') {
            return <MyClub user={currentUser} />;
         }
@@ -236,7 +296,7 @@ const App: React.FC = () => {
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
         initialMode={authMode}
-        onLogin={(user) => setCurrentUser(user)} // AuthModal now handles Supabase calls internally
+        onLogin={(user) => setCurrentUser(user)} 
       />
 
       <FeedbackModal
@@ -244,7 +304,6 @@ const App: React.FC = () => {
         onClose={() => setIsFeedbackModalOpen(false)}
       />
 
-      {/* Floating Feedback Button */}
       <button 
         onClick={() => setIsFeedbackModalOpen(true)}
         className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-black text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform cursor-pointer group"

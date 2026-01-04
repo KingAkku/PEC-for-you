@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { MOCK_CLUBS } from '../constants';
 import { User, Club } from '../types';
 import { motion } from 'framer-motion';
 import ClubCard from '../components/ClubCard';
+import { supabase } from '../lib/supabase';
+import { Search } from 'lucide-react';
 
 interface ClubsProps {
   user: User | null;
@@ -10,11 +11,39 @@ interface ClubsProps {
 }
 
 const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
-  const [clubs, setClubs] = useState(MOCK_CLUBS);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    fetchClubs();
   }, []);
+
+  const fetchClubs = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('*');
+      
+      if (data) {
+        const mappedClubs = data.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          description: c.description,
+          logoInitial: c.logo_initial || c.name.charAt(0),
+          memberCount: c.member_count,
+          category: c.category,
+          image: c.image
+        }));
+        setClubs(mappedClubs);
+      }
+      if (error) throw error;
+    } catch (error) {
+      console.error("Error fetching clubs:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleManage = (clubName: string) => {
      alert(`Opening management dashboard for ${clubName}`);
@@ -33,18 +62,33 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {clubs.map((club, index) => (
-          <ClubCard 
-            key={club.id} 
-            club={club} 
-            index={index}
-            onJoin={onViewClub}
-            isAdmin={user?.role === 'admin' || user?.role === 'lead'} 
-            onManage={() => handleManage(club.name)}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-20 text-slate-500">
+             <div className="w-10 h-10 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin mx-auto mb-4"></div>
+             Loading communities...
+        </div>
+      ) : clubs.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {clubs.map((club, index) => (
+            <ClubCard 
+              key={club.id} 
+              club={club} 
+              index={index}
+              onJoin={onViewClub}
+              isAdmin={user?.role === 'admin' || user?.role === 'lead'} 
+              onManage={() => handleManage(club.name)}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20 bg-white/50 rounded-3xl border border-dashed border-slate-200">
+            <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4 text-slate-400">
+                <Search size={28} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900">No clubs found</h3>
+            <p className="text-slate-500 mt-2">Database is empty. Please add clubs via SQL or Admin.</p>
+        </div>
+      )}
     </motion.div>
   );
 };

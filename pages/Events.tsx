@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { User, Event } from '../types';
-import { MOCK_CLUBS } from '../constants';
 import { Calendar, MapPin, Users, Plus, ArrowRight, Search, Filter, X, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,7 +14,7 @@ const CATEGORIES = ['All', 'Technical', 'Cultural', 'Workshop', 'Seminar', 'Hack
 const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedClub, setSelectedClub] = useState('All');
+  const [selectedOrganizer, setSelectedOrganizer] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [isSuccess, setIsSuccess] = useState(false);
 
@@ -27,14 +26,13 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
       location: '',
       category: 'Technical' as Event['category'],
       organizer: '',
-      imageUrl: 'https://picsum.photos/400/205' // Default random placeholder
+      imageUrl: 'https://picsum.photos/400/205'
   });
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Reset success state when modal opens/closes
   useEffect(() => {
     if (!showCreateModal) setIsSuccess(false);
   }, [showCreateModal]);
@@ -44,8 +42,7 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
       if (showCreateModal && user) {
           let defaultOrganizer = '';
           if (user.role === 'lead' && user.clubId) {
-             const club = MOCK_CLUBS.find(c => c.id === user.clubId);
-             defaultOrganizer = club ? club.name : '';
+             defaultOrganizer = 'My Club'; // In real app, fetch club name
           } else if (user.role === 'faculty') {
               defaultOrganizer = user.department || 'Faculty';
           }
@@ -53,31 +50,28 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
       }
   }, [showCreateModal, user]);
 
-  // Authorization check: Admin, Faculty, and Leads can create events
   const canCreateEvent = user && ['admin', 'faculty', 'lead'].includes(user.role);
 
-  // Extract unique organizers for filter
   const organizers = useMemo(() => {
     const orgs = new Set(events.map(e => e.organizer));
     return ['All', ...Array.from(orgs)];
   }, [events]);
 
-  // Filter events based on search query, selected club, and selected category
   const filteredEvents = events.filter(event => {
     const matchesSearch = event.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           event.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesClub = selectedClub === 'All' || event.organizer === selectedClub;
+    const matchesOrganizer = selectedOrganizer === 'All' || event.organizer === selectedOrganizer;
     const matchesCategory = selectedCategory === 'All' || event.category === selectedCategory;
     
-    return matchesSearch && matchesClub && matchesCategory;
+    return matchesSearch && matchesOrganizer && matchesCategory;
   });
 
   const handleCreateSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const newEvent: Event = {
-          id: Date.now().toString(),
+          id: `temp-${Date.now()}`, // Temporary ID, DB will assign real one
           title: formData.title,
-          date: formData.date, // In real app, format this nicely
+          date: formData.date,
           description: formData.description,
           location: formData.location,
           category: formData.category,
@@ -89,10 +83,8 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
       onAddEvent(newEvent);
       setIsSuccess(true);
       
-      // Close modal after success animation
       setTimeout(() => {
         setShowCreateModal(false);
-        // Reset form
         setFormData({
             title: '',
             date: '',
@@ -147,8 +139,8 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
             <div className="relative min-w-[240px]">
                 <Filter className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                 <select 
-                    value={selectedClub}
-                    onChange={(e) => setSelectedClub(e.target.value)}
+                    value={selectedOrganizer}
+                    onChange={(e) => setSelectedOrganizer(e.target.value)}
                     className="w-full pl-14 pr-12 py-4 rounded-2xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-300 shadow-sm appearance-none cursor-pointer transition-all text-slate-700 font-medium"
                 >
                     {organizers.map(org => (
@@ -157,7 +149,6 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
                         </option>
                     ))}
                 </select>
-                {/* Custom chevron */}
                 <div className="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                 </div>
@@ -198,7 +189,7 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
                 {/* Image */}
                 <div className="w-full md:w-64 h-64 md:h-48 rounded-[1.25rem] overflow-hidden shrink-0 relative">
                    <img 
-                    src={event.imageUrl} 
+                    src={event.imageUrl || 'https://picsum.photos/400/200'} 
                     alt={event.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" 
                   />
@@ -212,7 +203,6 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
 
                 {/* Date Block */}
                 <div className="hidden md:flex flex-col items-center justify-center w-24 shrink-0 border-r border-slate-100 pr-6">
-                  {/* Handle potentially unformatted dates gracefully */}
                   <span className="text-xl font-display text-slate-900 break-words text-center">{event.date}</span>
                 </div>
 
@@ -228,7 +218,7 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
                     </div>
                     <div className="flex items-center gap-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
                       <Users size={16} className="text-slate-400" />
-                      <span>{event.registeredCount} Registered</span>
+                      <span>{event.registeredCount || 0} Registered</span>
                     </div>
                   </div>
                 </div>
@@ -259,9 +249,9 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
                     <Search size={28} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900">No events found</h3>
-                <p className="text-slate-500 mt-2">We couldn't find any events matching your filters.</p>
+                <p className="text-slate-500 mt-2">Database is empty or no matches found.</p>
                 <button 
-                    onClick={() => { setSearchQuery(''); setSelectedClub('All'); setSelectedCategory('All'); }}
+                    onClick={() => { setSearchQuery(''); setSelectedOrganizer('All'); setSelectedCategory('All'); }}
                     className="mt-6 text-slate-900 font-bold hover:underline"
                 >
                     Clear Filters

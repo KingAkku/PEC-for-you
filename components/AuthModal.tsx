@@ -73,7 +73,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
 
           // Success Logic
           if (authData.session) {
-            // Immediate login if session is created (auto-confirm disabled)
             onLogin({
                 id: authData.user.id,
                 name: fullName,
@@ -85,7 +84,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
             setSuccessMessage("Account created successfully!");
             setTimeout(() => onClose(), 1500);
           } else {
-             // Email confirmation required
              setSuccessMessage("Account created! Please check your email to verify.");
           }
         }
@@ -98,7 +96,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
 
         if (error) throw error;
         
-        // Fetch extended profile data
         if (data.user) {
             const { data: profile } = await supabase
                 .from('profiles')
@@ -106,7 +103,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                 .eq('id', data.user.id)
                 .single();
             
-            // If we have a profile, use it. Otherwise rely on auth user metadata or defaults.
             if (profile) {
                 onLogin({
                     id: profile.id,
@@ -117,7 +113,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
                     clubId: profile.club_id
                 });
             } else {
-                 // Fallback if profile table entry is missing but auth succeeded
                  onLogin({
                     id: data.user.id,
                     name: data.user.user_metadata?.name || 'User',
@@ -133,7 +128,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
       }
     } catch (error: any) {
       console.error("Auth Error:", error);
-      setErrorMessage(error.message || "An unexpected error occurred.");
+      
+      let displayError = error.message || "An unexpected error occurred.";
+
+      // Provide clear instructions if keys are missing
+      if (displayError === "Failed to fetch" || displayError.includes("NetworkError")) {
+          displayError = "Connection Failed: Please ensure your 'VITE_SUPABASE_URL' and 'VITE_SUPABASE_ANON_KEY' are correctly set in your environment variables.";
+      }
+
+      setErrorMessage(displayError);
     } finally {
       setIsLoading(false);
     }
@@ -179,9 +182,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
               </div>
 
               {errorMessage && (
-                <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100 flex items-start gap-2">
-                  <div className="w-1 h-4 bg-red-400 rounded-full mt-0.5"></div>
-                  {errorMessage}
+                <div className="mb-4 p-3 bg-red-50 text-red-600 text-xs rounded-lg border border-red-100 flex items-start gap-2">
+                  <div className="w-1 h-4 bg-red-400 rounded-full mt-0.5 shrink-0"></div>
+                  <span className="leading-snug">{errorMessage}</span>
                 </div>
               )}
 

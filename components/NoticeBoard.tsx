@@ -32,7 +32,7 @@ const NoticeCard: React.FC<{ notice: Notice }> = ({ notice }) => {
       <h3 className="text-lg font-bold text-slate-800 mb-2 leading-tight group-hover:text-blue-600 transition-colors">
         {notice.title}
       </h3>
-      <p className="text-slate-500 text-sm leading-relaxed">
+      <p className="text-slate-500 text-sm leading-relaxed whitespace-pre-line">
         {notice.content}
       </p>
     </div>
@@ -58,7 +58,7 @@ const NoticeBoard: React.FC<NoticeBoardProps> = ({ user, notices, onAddNotice })
   const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
       const newNotice: Notice = {
-          id: Date.now().toString(),
+          id: `temp-${Date.now()}`,
           ...formData
       };
       onAddNotice(newNotice);
@@ -98,11 +98,18 @@ const NoticeBoard: React.FC<NoticeBoardProps> = ({ user, notices, onAddNotice })
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {notices.map((notice) => (
-          <NoticeCard key={notice.id} notice={notice} />
-        ))}
-      </div>
+      {notices.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {notices.map((notice) => (
+              <NoticeCard key={notice.id} notice={notice} />
+            ))}
+          </div>
+      ) : (
+          <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+             <p className="text-slate-400 font-medium">No active notices.</p>
+          </div>
+      )}
+
       <div className="md:hidden mt-6 text-center">
          <button className="text-blue-600 font-medium hover:underline">View Archived &rarr;</button>
       </div>

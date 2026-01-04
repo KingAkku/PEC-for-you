@@ -1,44 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Helper to safely access env vars in various environments
-const getEnvVar = (key: string) => {
-  // 1. Check process.env (Standard Node/Next.js/CRA)
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key];
-  }
-  
-  // 2. Check import.meta.env (Vite)
-  // We use a try-catch and type casting to avoid build errors in environments 
-  // that don't support import.meta syntax or types.
-  try {
-    const meta = (import.meta as any);
-    if (meta && meta.env && meta.env[key]) {
-      return meta.env[key];
-    }
-  } catch (e) {
-    // Ignore ReferenceErrors or other issues
-  }
-  
-  return '';
-};
-
-// Attempt to get credentials from common environment variable names
-const supabaseUrl = 
-  getEnvVar('NEXT_PUBLIC_SUPABASE_URL') || 
-  getEnvVar('VITE_SUPABASE_URL');
-
-const supabaseAnonKey = 
-  getEnvVar('NEXT_PUBLIC_SUPABASE_ANON_KEY') || 
-  getEnvVar('VITE_SUPABASE_ANON_KEY');
-
-// Fallback values to prevent the build from crashing if variables are missing.
-// This allows the UI to render (albeit with connection errors) even if the 
-// Supabase integration failed to provision.
-const finalUrl = supabaseUrl || 'https://placeholder.supabase.co';
-const finalKey = supabaseAnonKey || 'placeholder';
+// Access environment variables using Vite's import.meta.env
+// We use a fallback to empty string to prevent crashes during build time,
+// but the app will prompt for keys if they are missing at runtime.
+// Cast import.meta to any to resolve TypeScript error regarding missing 'env' property
+const supabaseUrl = (import.meta as any).env.VITE_SUPABASE_URL || '';
+const supabaseAnonKey = (import.meta as any).env.VITE_SUPABASE_ANON_KEY || '';
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase credentials missing! Using placeholder values. Check your Vercel project settings.');
+  console.warn(
+    'Supabase credentials missing! Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to your .env.local file.'
+  );
 }
 
-export const supabase = createClient(finalUrl, finalKey);
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
