@@ -26,8 +26,12 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
         .from('clubs')
         .select('*');
       
-      if (data && data.length > 0) {
-        const mappedClubs = data.map((c: any) => ({
+      if (error) {
+        console.error("Error fetching clubs:", error.message);
+        setClubs(MOCK_CLUBS);
+      } else {
+        // Map DB data or default to empty array
+        const mappedClubs = (data || []).map((c: any) => ({
           id: c.id,
           name: c.name,
           description: c.description,
@@ -37,9 +41,6 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
           image: c.image
         }));
         setClubs(mappedClubs);
-      } else {
-        if (error) console.warn("Error fetching clubs (Using fallback):", error.message);
-        setClubs(MOCK_CLUBS);
       }
     } catch (error) {
       console.error("Unexpected error fetching clubs:", error);
@@ -90,7 +91,7 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
                 <Search size={28} />
             </div>
             <h3 className="text-xl font-bold text-slate-900">No clubs found</h3>
-            <p className="text-slate-500 mt-2">Database is empty. Please add clubs via SQL or Admin.</p>
+            <p className="text-slate-500 mt-2">There are currently no active clubs listed.</p>
         </div>
       )}
     </motion.div>

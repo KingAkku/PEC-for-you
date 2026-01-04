@@ -67,44 +67,52 @@ const App: React.FC = () => {
   }, []);
 
   const fetchNotices = async () => {
-    const { data, error } = await supabase
-      .from('notices')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (data && data.length > 0) {
-      setNotices(data);
-    } else {
-      // Fallback to mock data if DB is empty or error occurs
-      if (error) console.warn("Supabase fetch error (Notices):", error.message);
+    try {
+      const { data, error } = await supabase
+        .from('notices')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching notices:", error.message);
+        // Only fallback to mock data on actual error
+        setNotices(MOCK_NOTICES);
+      } else {
+        // Use real data (even if empty)
+        setNotices(data || []);
+      }
+    } catch (e) {
       setNotices(MOCK_NOTICES);
     }
   };
 
   const fetchEvents = async () => {
-    const { data, error } = await supabase
-      .from('events')
-      .select('*')
-      .order('created_at', { ascending: false });
-      
-    if (data && data.length > 0) {
-       // Map DB snake_case to camelCase
-       const mappedEvents = data.map((e: any) => ({
-         id: e.id,
-         title: e.title,
-         description: e.description,
-         date: e.date,
-         location: e.location,
-         organizer: e.organizer,
-         imageUrl: e.image_url,
-         registeredCount: e.registered_count,
-         category: e.category
-       }));
-       setEvents(mappedEvents);
-    } else {
-       // Fallback to mock data if DB is empty or error occurs
-       if (error) console.warn("Supabase fetch error (Events):", error.message);
-       setEvents(MOCK_EVENTS);
+    try {
+      const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .order('created_at', { ascending: false });
+        
+      if (error) {
+         console.error("Error fetching events:", error.message);
+         setEvents(MOCK_EVENTS);
+      } else {
+         // Map DB snake_case to camelCase
+         const mappedEvents = (data || []).map((e: any) => ({
+           id: e.id,
+           title: e.title,
+           description: e.description,
+           date: e.date,
+           location: e.location,
+           organizer: e.organizer,
+           imageUrl: e.image_url,
+           registeredCount: e.registered_count,
+           category: e.category
+         }));
+         setEvents(mappedEvents);
+      }
+    } catch (e) {
+      setEvents(MOCK_EVENTS);
     }
   };
 
@@ -164,8 +172,7 @@ const App: React.FC = () => {
     
     if (error) {
         console.error("Failed to save notice:", error.message);
-        // We don't revert here to keep the UI snappy for the demo, 
-        // but in prod you would revert the state or show a toast
+        // We don't revert here to keep the UI snappy for the demo
     }
   };
 
