@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Home from './pages/Home';
@@ -12,6 +12,7 @@ import FeedbackModal from './components/FeedbackModal';
 import { User, Club, Notice, Event } from './types';
 import { MOCK_NOTICES, MOCK_EVENTS } from './constants';
 import { AnimatePresence } from 'framer-motion';
+import { supabase } from './lib/supabase';
 
 const App: React.FC = () => {
   // State for Data Persistence
@@ -21,10 +22,77 @@ const App: React.FC = () => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
+  const [loading, setLoading] = useState(true);
 
   // Lifted State for Dynamic Updates
   const [notices, setNotices] = useState<Notice[]>(MOCK_NOTICES);
   const [events, setEvents] = useState<Event[]>(MOCK_EVENTS);
+
+  // Initialize Supabase Auth Listener
+  useEffect(() => {
+    // 1. Check active session on startup
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        await fetchUserProfile(session.user.id, session.user.email);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+
+    // 2. Listen for changes (Login, Logout, Auto-refresh)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        // If SIGNED_IN (especially from signup), wait a moment for profile creation
+        if (event === 'SIGNED_IN') {
+           // Small delay to allow profile insertion to complete if this was a new signup
+           setTimeout(() => fetchUserProfile(session.user.id, session.user.email), 500);
+        } else {
+           await fetchUserProfile(session.user.id, session.user.email);
+        }
+      } else {
+        setCurrentUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchUserProfile = async (userId: string, email?: string, retryCount = 0) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && retryCount < 3) {
+        // If error (likely 'no rows found' during fast signup), retry a few times
+        setTimeout(() => fetchUserProfile(userId, email, retryCount + 1), 500);
+        return;
+      }
+
+      if (data) {
+        // Map Supabase profile to our App's User type
+        const appUser: User = {
+          id: data.id,
+          name: data.name,
+          role: data.role,
+          email: data.email || email,
+          department: data.department,
+          clubId: data.club_id
+        };
+        setCurrentUser(appUser);
+      }
+    } catch (error) {
+      console.error("Unexpected error fetching profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Wrapper to handle view changes and scroll reset
   const handleViewChange = (view: string) => {
@@ -47,6 +115,14 @@ const App: React.FC = () => {
   };
 
   const renderView = () => {
+    if (loading) {
+      return (
+        <div className="h-screen flex items-center justify-center bg-slate-50">
+          <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-900 rounded-full animate-spin"></div>
+        </div>
+      );
+    }
+
     switch (currentView) {
       case 'home':
         return (
@@ -125,7 +201,8 @@ const App: React.FC = () => {
     setIsAuthModalOpen(true);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setCurrentUser(null);
     handleViewChange('home');
   };
@@ -152,7 +229,7 @@ const App: React.FC = () => {
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
         initialMode={authMode}
-        onLogin={setCurrentUser}
+        onLogin={(user) => setCurrentUser(user)} // AuthModal now handles Supabase calls internally
       />
 
       <FeedbackModal

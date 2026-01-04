@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { User, Event } from '../types';
 import { MOCK_CLUBS } from '../constants';
-import { Calendar, MapPin, Users, Plus, ArrowRight, Search, Filter, X } from 'lucide-react';
+import { Calendar, MapPin, Users, Plus, ArrowRight, Search, Filter, X, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface EventsProps {
@@ -17,6 +17,7 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedClub, setSelectedClub] = useState('All');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [isSuccess, setIsSuccess] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -32,6 +33,11 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Reset success state when modal opens/closes
+  useEffect(() => {
+    if (!showCreateModal) setIsSuccess(false);
+  }, [showCreateModal]);
 
   // Set default organizer based on user role when modal opens
   useEffect(() => {
@@ -79,19 +85,24 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
           imageUrl: formData.imageUrl,
           registeredCount: 0
       };
+      
       onAddEvent(newEvent);
-      setShowCreateModal(false);
-      // Reset form
-      setFormData({
-        title: '',
-        date: '',
-        description: '',
-        location: '',
-        category: 'Technical',
-        organizer: '',
-        imageUrl: 'https://picsum.photos/400/205'
-      });
-      alert("Event Published Successfully!");
+      setIsSuccess(true);
+      
+      // Close modal after success animation
+      setTimeout(() => {
+        setShowCreateModal(false);
+        // Reset form
+        setFormData({
+            title: '',
+            date: '',
+            description: '',
+            location: '',
+            category: 'Technical',
+            organizer: '',
+            imageUrl: 'https://picsum.photos/400/205'
+        });
+      }, 1500);
   };
 
   return (
@@ -269,86 +280,99 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
             >
                 <X size={20} />
             </button>
-            <h3 className="text-2xl font-bold text-slate-900 mb-6 font-display">Create New Event</h3>
-            <form onSubmit={handleCreateSubmit} className="space-y-4">
-               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Event Title</label>
-                <input 
-                    type="text" 
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
-                    placeholder="e.g. Hackathon 2024" 
-                    value={formData.title}
-                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                />
-               </div>
-               
-               <div className="grid grid-cols-2 gap-4">
-                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Date</label>
+            
+            {isSuccess ? (
+              <div className="py-20 text-center animate-in fade-in zoom-in duration-300">
+                <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <CheckCircle size={40} />
+                </div>
+                <h3 className="text-3xl font-display text-slate-900 mb-2">Published!</h3>
+                <p className="text-slate-500">Your event is now live on the calendar.</p>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-2xl font-bold text-slate-900 mb-6 font-display">Create New Event</h3>
+                <form onSubmit={handleCreateSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Event Title</label>
                     <input 
-                        type="date" 
+                        type="text" 
                         required
                         className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
-                        value={formData.date}
-                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        placeholder="e.g. Hackathon 2024" 
+                        value={formData.title}
+                        onChange={(e) => setFormData({...formData, title: e.target.value})}
                     />
-                   </div>
-                   <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Category</label>
-                    <select
-                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50"
-                        value={formData.category}
-                        onChange={(e) => setFormData({...formData, category: e.target.value as Event['category']})}
-                    >
-                        {CATEGORIES.filter(c => c !== 'All').map(c => (
-                            <option key={c} value={c}>{c}</option>
-                        ))}
-                    </select>
-                   </div>
-               </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Date</label>
+                        <input 
+                            type="date" 
+                            required
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                            value={formData.date}
+                            onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Category</label>
+                        <select
+                            className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50"
+                            value={formData.category}
+                            onChange={(e) => setFormData({...formData, category: e.target.value as Event['category']})}
+                        >
+                            {CATEGORIES.filter(c => c !== 'All').map(c => (
+                                <option key={c} value={c}>{c}</option>
+                            ))}
+                        </select>
+                      </div>
+                  </div>
 
-               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Location</label>
-                <input 
-                    type="text" 
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
-                    placeholder="e.g. Main Auditorium"
-                    value={formData.location}
-                    onChange={(e) => setFormData({...formData, location: e.target.value})}
-                />
-               </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Location</label>
+                    <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                        placeholder="e.g. Main Auditorium"
+                        value={formData.location}
+                        onChange={(e) => setFormData({...formData, location: e.target.value})}
+                    />
+                  </div>
 
-               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Organizer</label>
-                <input 
-                    type="text" 
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
-                    placeholder="Club or Dept Name"
-                    value={formData.organizer}
-                    onChange={(e) => setFormData({...formData, organizer: e.target.value})}
-                />
-               </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Organizer</label>
+                    <input 
+                        type="text" 
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                        placeholder="Club or Dept Name"
+                        value={formData.organizer}
+                        onChange={(e) => setFormData({...formData, organizer: e.target.value})}
+                    />
+                  </div>
 
-               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Description</label>
-                <textarea 
-                    required
-                    className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
-                    rows={3}
-                    placeholder="Event details..."
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                ></textarea>
-               </div>
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Description</label>
+                    <textarea 
+                        required
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                        rows={3}
+                        placeholder="Event details..."
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    ></textarea>
+                  </div>
 
-               <div className="flex justify-end space-x-3 mt-8">
-                  <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-slate-500 hover:text-slate-900 font-bold text-sm">Cancel</button>
-                  <button type="submit" className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black shadow-lg">Publish</button>
-               </div>
-            </form>
+                  <div className="flex justify-end space-x-3 mt-8">
+                      <button type="button" onClick={() => setShowCreateModal(false)} className="px-6 py-3 text-slate-500 hover:text-slate-900 font-bold text-sm">Cancel</button>
+                      <button type="submit" className="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black shadow-lg">Publish</button>
+                  </div>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}

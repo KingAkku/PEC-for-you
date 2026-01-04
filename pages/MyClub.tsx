@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { User, Club } from '../types';
 import { MOCK_CLUBS } from '../constants';
-import { motion } from 'framer-motion';
-import { Settings, Users, Plus, Save, Upload } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Settings, Users, Plus, Save, Upload, X, Check } from 'lucide-react';
 
 interface MyClubProps {
   user: User;
@@ -14,6 +13,13 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
   const initialClub = MOCK_CLUBS.find(c => c.id === user.clubId) || MOCK_CLUBS[0];
   const [clubData, setClubData] = useState<Club>(initialClub);
   const [isEditing, setIsEditing] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  
+  // New Member Form State
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState('Member');
+
   const [members, setMembers] = useState([
     { id: 1, name: 'Alice Johnson', role: 'Member', joined: '2023-09-01' },
     { id: 2, name: 'Bob Smith', role: 'Executive', joined: '2023-08-15' },
@@ -26,13 +32,26 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
 
   const handleSave = () => {
     setIsEditing(false);
-    alert("Club details updated successfully!");
+    triggerToast();
   };
 
-  const handleAddMember = () => {
-      const name = prompt("Enter new member name:");
-      if(name) {
-          setMembers([...members, { id: Date.now(), name, role: 'Member', joined: new Date().toISOString().split('T')[0] }]);
+  const triggerToast = () => {
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const handleAddMember = (e: React.FormEvent) => {
+      e.preventDefault();
+      if(newMemberName) {
+          setMembers([...members, { 
+              id: Date.now(), 
+              name: newMemberName, 
+              role: newMemberRole, 
+              joined: new Date().toISOString().split('T')[0] 
+          }]);
+          setNewMemberName('');
+          setShowAddMemberModal(false);
+          triggerToast();
       }
   };
 
@@ -40,7 +59,7 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }}
-      className="pt-32 px-4 max-w-7xl mx-auto min-h-screen pb-20"
+      className="pt-32 px-4 max-w-7xl mx-auto min-h-screen pb-20 relative"
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-10 gap-4">
         <div>
@@ -52,7 +71,7 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
         </div>
         <button 
             onClick={() => setIsEditing(!isEditing)}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${isEditing ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-slate-900 text-white hover:bg-black'}`}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${isEditing ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg hover:shadow-green-500/25' : 'bg-slate-900 text-white hover:bg-black shadow-lg'}`}
         >
             {isEditing ? <Save size={18} /> : <Settings size={18} />}
             <span>{isEditing ? 'Save Changes' : 'Edit Club Details'}</span>
@@ -63,7 +82,7 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
           
           {/* Club Details Form */}
           <div className="lg:col-span-2 space-y-8">
-              <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100">
+              <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-slate-100 relative overflow-hidden">
                   <h2 className="text-xl font-bold text-slate-900 mb-6">General Information</h2>
                   
                   <div className="space-y-6">
@@ -111,7 +130,7 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
                       </div>
 
                       {isEditing && (
-                          <div className="pt-4 border-t border-slate-100">
+                          <div className="pt-4 border-t border-slate-100 animate-in slide-in-from-top-2">
                               <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-4">Banner Image</label>
                               <div className="flex items-center gap-4">
                                   <div className="w-24 h-16 rounded-lg overflow-hidden bg-slate-100">
@@ -141,20 +160,21 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
 
           {/* Members Sidebar */}
           <div className="space-y-6">
-              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 h-full">
+              <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 h-full flex flex-col">
                   <div className="flex justify-between items-center mb-6">
                       <h2 className="text-xl font-bold text-slate-900">Members</h2>
                       <button 
-                        onClick={handleAddMember}
+                        onClick={() => setShowAddMemberModal(true)}
                         className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-colors"
+                        title="Add Member"
                       >
                           <Plus size={20} />
                       </button>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-4 flex-grow">
                       {members.map((member) => (
-                          <div key={member.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                          <div key={member.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
                               <div className="flex items-center gap-3">
                                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center text-slate-600 font-bold text-sm">
                                       {member.name.charAt(0)}
@@ -164,7 +184,7 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
                                       <div className="text-xs text-slate-400">{member.role}</div>
                                   </div>
                               </div>
-                              <button className="text-xs text-slate-400 hover:text-red-500 font-medium">Remove</button>
+                              <button className="text-xs text-slate-300 hover:text-red-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">Remove</button>
                           </div>
                       ))}
                   </div>
@@ -175,6 +195,68 @@ const MyClub: React.FC<MyClubProps> = ({ user }) => {
               </div>
           </div>
       </div>
+
+      {/* Add Member Modal */}
+      {showAddMemberModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/30 backdrop-blur-md">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm animate-in zoom-in-95 duration-200 border border-white/50 relative">
+                <button 
+                    onClick={() => setShowAddMemberModal(false)}
+                    className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors"
+                >
+                    <X size={20} />
+                </button>
+                <h3 className="text-xl font-bold text-slate-900 mb-4">Add New Member</h3>
+                <form onSubmit={handleAddMember} className="space-y-4">
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Full Name</label>
+                        <input 
+                            type="text" 
+                            required
+                            autoFocus
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50" 
+                            placeholder="e.g. Jane Doe"
+                            value={newMemberName}
+                            onChange={(e) => setNewMemberName(e.target.value)}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">Role</label>
+                        <select 
+                            className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900 bg-slate-50"
+                            value={newMemberRole}
+                            onChange={(e) => setNewMemberRole(e.target.value)}
+                        >
+                            <option value="Member">Member</option>
+                            <option value="Executive">Executive</option>
+                            <option value="Treasurer">Treasurer</option>
+                            <option value="Secretary">Secretary</option>
+                        </select>
+                    </div>
+                    <button type="submit" className="w-full py-3 bg-slate-900 text-white rounded-xl font-bold hover:bg-black transition-colors shadow-lg">
+                        Add Member
+                    </button>
+                </form>
+            </div>
+        </div>
+      )}
+
+      {/* Success Toast */}
+      <AnimatePresence>
+        {showToast && (
+            <motion.div 
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-full shadow-2xl z-50 flex items-center gap-3"
+            >
+                <div className="bg-green-500 rounded-full p-0.5">
+                    <Check size={14} strokeWidth={3} />
+                </div>
+                <span className="font-bold text-sm">Changes Saved Successfully</span>
+            </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 };
