@@ -16,11 +16,51 @@ export const MOCK_EVENTS: Event[] = [
 ];
 
 export const MOCK_CLUBS: Club[] = [
-  { id: 'c1', name: 'Mulearn', description: 'Learning by doing. A community for peer-to-peer learning.', logoInitial: 'M', membersCount: 350 },
-  { id: 'c2', name: 'IEEE', description: 'Advancing technology for humanity.', logoInitial: 'I', membersCount: 200 },
-  { id: 'c3', name: 'IEDC', description: 'Innovation and Entrepreneurship Development Centre.', logoInitial: 'E', membersCount: 150 },
-  { id: 'c4', name: 'CSI', description: 'Computer Society of India student branch.', logoInitial: 'C', membersCount: 120 },
-  { id: 'c5', name: 'ICFOSS', description: 'Free and Open Source Software club.', logoInitial: 'F', membersCount: 90 },
+  { 
+    id: 'c1', 
+    name: 'Mulearn', 
+    description: 'Learning by doing. A community for peer-to-peer learning and industry collaboration.', 
+    logoInitial: 'M', 
+    memberCount: 350,
+    category: 'Tech & Coding',
+    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=800'
+  },
+  { 
+    id: 'c2', 
+    name: 'IEEE', 
+    description: 'The world\'s largest technical professional organization dedicated to advancing technology.', 
+    logoInitial: 'I', 
+    memberCount: 200,
+    category: 'Professional',
+    image: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800'
+  },
+  { 
+    id: 'c3', 
+    name: 'IEDC', 
+    description: 'Innovation and Entrepreneurship Development Centre. Fostering startup culture.', 
+    logoInitial: 'E', 
+    memberCount: 150,
+    category: 'Innovation',
+    image: 'https://images.unsplash.com/photo-1559136555-930d72f18615?auto=format&fit=crop&q=80&w=800'
+  },
+  { 
+    id: 'c4', 
+    name: 'CSI', 
+    description: 'Computer Society of India student branch. Seminars, workshops and quizzes.', 
+    logoInitial: 'C', 
+    memberCount: 120,
+    category: 'Tech Society',
+    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=800'
+  },
+  { 
+    id: 'c5', 
+    name: 'ICFOSS', 
+    description: 'Promoting Free and Open Source Software. Workshops on Linux, Python and more.', 
+    logoInitial: 'F', 
+    memberCount: 90,
+    category: 'Open Source',
+    image: 'https://images.unsplash.com/photo-1607799275518-d58665d099db?auto=format&fit=crop&q=80&w=800'
+  },
 ];
 
 export const DEMO_USERS: User[] = [

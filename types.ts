@@ -30,9 +30,11 @@ export interface Club {
   id: string;
   name: string;
   description: string;
-  logoInitial: string; // e.g., 'M' for Mulearn
-  membersCount: number;
+  logoInitial: string; 
+  memberCount: number;
   mentor?: string;
+  image: string;
+  category: string;
 }
 
 export interface HeroPopup {
