@@ -1,3 +1,4 @@
+
 import React from 'react';
 import Hero from '../components/Hero';
 import NoticeBoard from '../components/NoticeBoard';
@@ -10,9 +11,18 @@ interface HomeProps {
   user?: User | null;
   notices: Notice[];
   onAddNotice: (notice: Notice) => void;
+  clubNames?: string[];
+  stats?: { students: number, clubs: number, events: number };
 }
 
-const Home: React.FC<HomeProps> = ({ onNavigate, user, notices, onAddNotice }) => {
+const Home: React.FC<HomeProps> = ({ 
+  onNavigate, 
+  user, 
+  notices, 
+  onAddNotice, 
+  clubNames,
+  stats = { students: 0, clubs: 0, events: 0 }
+}) => {
   
   const scrollToNotices = () => {
     const element = document.getElementById('notice-board');
@@ -28,8 +38,7 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user, notices, onAddNotice }) =
       exit={{ opacity: 0 }}
       className="min-h-screen"
     >
-      <Hero onNavigate={onNavigate} />
-      {/* Removed negative margin so NoticeBoard starts below the full-screen Hero */}
+      <Hero onNavigate={onNavigate} clubNames={clubNames} />
       <div className="relative z-10 bg-white/30 backdrop-blur-sm">
         <NoticeBoard user={user} notices={notices} onAddNotice={onAddNotice} />
       </div>
@@ -39,10 +48,10 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user, notices, onAddNotice }) =
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
-              { label: 'Active Students', value: '1,200+' },
-              { label: 'Registered Clubs', value: '15' },
-              { label: 'Events Hosted', value: '340+' },
-              { label: 'Awards Won', value: '45' },
+              { label: 'Active Students', value: stats.students > 0 ? `${stats.students.toLocaleString()}+` : '---' },
+              { label: 'Registered Clubs', value: stats.clubs > 0 ? stats.clubs : '---' },
+              { label: 'Events Hosted', value: stats.events > 0 ? `${stats.events.toLocaleString()}+` : '---' },
+              { label: 'Platform Status', value: 'Live' },
             ].map((stat, idx) => (
               <div key={idx} className="p-4">
                 <div className="text-3xl md:text-4xl font-black text-slate-900 mb-1">{stat.value}</div>
@@ -66,7 +75,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user, notices, onAddNotice }) =
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {/* Feature 1: Live Notices */}
             <motion.div 
                whileHover={{ y: -5 }}
                className="p-8 rounded-3xl bg-white shadow-sm border border-gray-100 relative overflow-hidden group cursor-pointer"
@@ -88,7 +96,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user, notices, onAddNotice }) =
                 </div>
             </motion.div>
 
-            {/* Feature 2: Event Registration */}
             <motion.div 
                whileHover={{ y: -5 }}
                onClick={() => onNavigate('events')}
@@ -110,7 +117,6 @@ const Home: React.FC<HomeProps> = ({ onNavigate, user, notices, onAddNotice }) =
                 </div>
             </motion.div>
 
-            {/* Feature 3: Club Communities */}
             <motion.div 
                whileHover={{ y: -5 }}
                onClick={() => onNavigate('clubs')}

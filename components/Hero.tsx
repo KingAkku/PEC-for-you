@@ -1,22 +1,21 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CLUB_NAMES } from '../constants';
 import { HeroPopup } from '../types';
 import { getRandomColor, getContrastColor, getRandomInt } from '../utils';
 import { ArrowRight } from 'lucide-react';
 
 interface HeroProps {
   onNavigate: (view: string) => void;
+  clubNames?: string[];
 }
 
-const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
+const Hero: React.FC<HeroProps> = ({ onNavigate, clubNames = ["PEC Portal"] }) => {
   const [popups, setPopups] = useState<HeroPopup[]>([]);
   const lastMousePos = useRef<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
   const handleMouseMove = (e: React.MouseEvent) => {
-    // Only trigger popup logic if target is the container itself or the background layer
-    // This prevents popups from spawning when hovering over buttons
     const target = e.target as HTMLElement;
     if (target.closest('button')) return;
 
@@ -28,11 +27,9 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
     if (lastMousePos.current) {
       const deltaX = Math.abs(currentX - lastMousePos.current.x);
       
-      // If moved enough horizontally
       if (deltaX > 40) { 
         const rect = containerRef.current.getBoundingClientRect();
         
-        // Only spawn if within bounds
         if (
           currentX >= rect.left && 
           currentX <= rect.right && 
@@ -49,13 +46,14 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
   };
 
   const spawnPopup = (x: number, y: number) => {
-    const text = CLUB_NAMES[Math.floor(Math.random() * CLUB_NAMES.length)];
+    // Use dynamic names if available, otherwise fallback
+    const namesSource = clubNames.length > 0 ? clubNames : ["PEC Portal"];
+    const text = namesSource[Math.floor(Math.random() * namesSource.length)];
     const bgColor = getRandomColor();
     const textColor = getContrastColor(bgColor);
     const borderRadius = getRandomInt(0, 10);
     const id = Date.now() + Math.random();
 
-    // Offset slightly so it doesn't appear exactly under cursor masking the text below too much
     const offsetX = getRandomInt(-50, 50);
     const offsetY = getRandomInt(-50, 50);
 
@@ -69,9 +67,8 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
       borderRadius
     };
 
-    setPopups((prev) => [...prev.slice(-8), newPopup]); // Keep last 8 to avoid DOM overload
+    setPopups((prev) => [...prev.slice(-8), newPopup]);
 
-    // Auto remove after animation
     setTimeout(() => {
       setPopups((prev) => prev.filter((p) => p.id !== id));
     }, 2000);
@@ -85,7 +82,6 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
     >
       <div className="absolute inset-0 -z-10 bg-white/30 backdrop-blur-sm"></div>
 
-      {/* Main Text */}
       <div className="z-10 text-center select-none pointer-events-none p-4 mt-10">
         <h1 className="font-display text-[15vw] leading-none text-slate-900 drop-shadow-2xl opacity-90 tracking-tight">
           PEC Portal
@@ -98,7 +94,6 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
         </p>
       </div>
 
-      {/* CTA Buttons */}
       <div className="z-30 mt-12 flex flex-col sm:flex-row items-center gap-5 animate-in slide-in-from-bottom-6 fade-in duration-1000 delay-200">
         <button 
           onClick={() => onNavigate('events')} 
@@ -114,7 +109,6 @@ const Hero: React.FC<HeroProps> = ({ onNavigate }) => {
         </button>
       </div>
 
-      {/* Popups Layer */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <AnimatePresence>
           {popups.map((popup) => (

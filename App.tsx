@@ -15,7 +15,6 @@ import { AnimatePresence } from 'framer-motion';
 import { supabase } from './lib/supabase';
 
 const App: React.FC = () => {
-  // State for Data Persistence
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState('home');
   const [selectedClub, setSelectedClub] = useState<Club | null>(null);
@@ -24,23 +23,26 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(true);
 
-  // Real Data State initialized to empty
   const [notices, setNotices] = useState<Notice[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
+  const [clubNames, setClubNames] = useState<string[]>([]);
+  const [stats, setStats] = useState({ students: 0, clubs: 0, events: 0 });
 
-  // Initialize Supabase Auth & Fetch Data
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // 1. Check Session
         const { data: sessionData } = await (supabase.auth as any).getSession();
         const session = sessionData?.session;
         if (session) {
           await fetchUserProfile(session.user.id, session.user.email);
         }
 
-        // 2. Fetch Content (Notices & Events)
-        await Promise.all([fetchNotices(), fetchEvents()]);
+        await Promise.all([
+          fetchNotices(), 
+          fetchEvents(), 
+          fetchClubNames(),
+          fetchStats()
+        ]);
         
       } catch (err) {
         console.error("Initialization error:", err);
@@ -51,7 +53,6 @@ const App: React.FC = () => {
 
     initializeApp();
 
-    // Listen for Auth Changes
     const { data: { subscription } } = (supabase.auth as any).onAuthStateChange(async (event: any, session: any) => {
       if (session) {
         if (event === 'SIGNED_IN') {
@@ -66,6 +67,36 @@ const App: React.FC = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const { count: studentCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+      const { count: clubCount } = await supabase.from('clubs').select('*', { count: 'exact', head: true });
+      const { count: eventCount } = await supabase.from('events').select('*', { count: 'exact', head: true });
+      
+      setStats({
+        students: studentCount || 0,
+        clubs: clubCount || 0,
+        events: eventCount || 0
+      });
+    } catch (e) {
+      console.error("Error fetching stats:", e);
+    }
+  };
+
+  const fetchClubNames = async () => {
+    try {
+      const { data } = await supabase.from('clubs').select('name');
+      if (data) {
+        // Fix: Explicitly cast data to any[] to allow mapping to string[] and resolve the unknown[] assignment error
+        // Use Set to ensure names are unique even if DB has duplicates
+        const uniqueNames = Array.from(new Set((data as any[]).map(c => c.name as string)));
+        setClubNames(uniqueNames);
+      }
+    } catch (e) {
+      console.error("Error fetching club names:", e);
+    }
+  };
 
   const fetchNotices = async () => {
     try {
@@ -148,10 +179,8 @@ const App: React.FC = () => {
     handleViewChange('club-detail');
   };
 
-  // Create Notice in DB
   const handleAddNotice = async (notice: Notice) => {
     setNotices(prev => [notice, ...prev]);
-
     try {
       const { error } = await supabase
           .from('notices')
@@ -161,17 +190,15 @@ const App: React.FC = () => {
               date: notice.date,
               category: notice.category
           }]);
-      
       if (error) throw error;
+      fetchStats(); // Refresh stats
     } catch (e) {
       console.error("Notice creation sync error:", e);
     }
   };
 
-  // Create Event in DB
   const handleAddEvent = async (event: Event) => {
     setEvents(prev => [event, ...prev]);
-
     try {
       const { error } = await supabase
           .from('events')
@@ -185,8 +212,8 @@ const App: React.FC = () => {
               category: event.category,
               registered_count: 0
           }]);
-
       if (error) throw error;
+      fetchStats(); // Refresh stats
     } catch (e) {
       console.error("Event creation sync error:", e);
     }
@@ -209,6 +236,8 @@ const App: React.FC = () => {
             user={currentUser} 
             notices={notices}
             onAddNotice={handleAddNotice}
+            clubNames={clubNames}
+            stats={stats}
           />
         );
       case 'events':
@@ -235,14 +264,14 @@ const App: React.FC = () => {
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'faculty')) {
            return <Dashboard user={currentUser} />;
         }
-        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} />;
+        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} clubNames={clubNames} stats={stats} />;
       case 'my-club':
         if (currentUser && currentUser.role === 'lead') {
            return <MyClub user={currentUser} />;
         }
-        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} />;
+        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} clubNames={clubNames} stats={stats} />;
       default:
-        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} />;
+        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} clubNames={clubNames} stats={stats} />;
     }
   };
 
