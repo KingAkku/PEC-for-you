@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User as UserIcon, ArrowRight, ChevronRight, BookOpen, CheckCircle, Users } from 'lucide-react';
 import { User, Role } from '../types';
@@ -59,7 +60,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
     try {
       if (mode === 'signup') {
         // Attempt Supabase Signup
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+        // Fix: Property 'signUp' does not exist on type 'SupabaseAuthClient'. Casting to any.
+        const { data: authData, error: authError } = await (supabase.auth as any).signUp({
           email,
           password,
           options: {
@@ -108,7 +110,8 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onLogin, initial
         }
       } else {
         // Login Logic
-        const { data, error } = await supabase.auth.signInWithPassword({
+        // Fix: Property 'signInWithPassword' does not exist on type 'SupabaseAuthClient'. Casting to any.
+        const { data, error } = await (supabase.auth as any).signInWithPassword({
           email,
           password,
         });

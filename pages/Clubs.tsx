@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { User, Club } from '../types';
 import { motion } from 'framer-motion';
 import ClubCard from '../components/ClubCard';
 import { supabase } from '../lib/supabase';
 import { Search } from 'lucide-react';
-import { MOCK_CLUBS } from '../constants';
 
 interface ClubsProps {
   user: User | null;
@@ -22,7 +22,7 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
 
   const fetchClubs = async () => {
     try {
-      // 1. Fetch Clubs
+      // 1. Fetch Clubs from DB
       const { data: clubsData, error: clubsError } = await supabase
         .from('clubs')
         .select('*');
@@ -30,13 +30,12 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
       if (clubsError) throw clubsError;
 
       // 2. Fetch Profiles to calculate real member counts
-      // We fetch all profiles that have a club_id assigned
       const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
         .select('club_id')
         .not('club_id', 'is', null);
 
-      if (profilesError) console.warn("Error fetching profile counts:", profilesError);
+      if (profilesError) console.warn("Error fetching profile counts:", profilesError.message);
 
       // 3. Aggregate Counts
       const memberCounts: Record<string, number> = {};
@@ -48,21 +47,21 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
         });
       }
 
-      // 4. Map Data
-      const mappedClubs = (clubsData || []).map((c: any) => ({
+      // 4. Map Database Data
+      const dbClubs = (clubsData || []).map((c: any) => ({
         id: c.id,
         name: c.name,
         description: c.description,
         logoInitial: c.logo_initial || c.name.charAt(0),
-        memberCount: memberCounts[c.id] || 0, // Use real calculated count
+        memberCount: memberCounts[c.id] || 0,
         category: c.category,
         image: c.image
       }));
       
-      setClubs(mappedClubs);
+      setClubs(dbClubs);
     } catch (error) {
-      console.error("Unexpected error fetching clubs:", error);
-      setClubs(MOCK_CLUBS);
+      console.error("Error fetching clubs:", error);
+      setClubs([]);
     } finally {
       setLoading(false);
     }
@@ -109,7 +108,7 @@ const Clubs: React.FC<ClubsProps> = ({ user, onViewClub }) => {
                 <Search size={28} />
             </div>
             <h3 className="text-xl font-bold text-slate-900">No clubs found</h3>
-            <p className="text-slate-500 mt-2">There are currently no active clubs listed.</p>
+            <p className="text-slate-500 mt-2">Database is empty. Please ensure you have seeded your Supabase 'clubs' table.</p>
         </div>
       )}
     </motion.div>

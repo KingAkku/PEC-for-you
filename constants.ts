@@ -1,7 +1,7 @@
 
 import { Club, Event, Notice, User } from './types';
 
-export const CLUB_NAMES = ["Mulearn", "IEEE", "CSI", "ICFOSS", "IEDC", "YIP"];
+export const CLUB_NAMES = ["Mulearn", "IEEE", "CSI", "ICFOSS", "IEDC", "YIP", "NSS"];
 
 export const DEPARTMENTS = [
   "Computer Science",
@@ -71,6 +71,15 @@ export const MOCK_CLUBS: Club[] = [
     memberCount: 90,
     category: 'Open Source',
     image: 'https://images.unsplash.com/photo-1555099962-4199c345e5dd?auto=format&fit=crop&q=80&w=800'
+  },
+  { 
+    id: 'c6', 
+    name: 'NSS', 
+    description: 'National Service Scheme. "Not Me But You". Engaging students in community service, social activities, and rural development.', 
+    logoInitial: 'N', 
+    memberCount: 250,
+    category: 'Social Service',
+    image: 'https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&q=80&w=800'
   },
 ];
 

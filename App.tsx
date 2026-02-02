@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -10,7 +11,6 @@ import MyClub from './pages/MyClub';
 import AuthModal from './components/AuthModal';
 import FeedbackModal from './components/FeedbackModal';
 import { User, Club, Notice, Event } from './types';
-import { MOCK_NOTICES, MOCK_EVENTS } from './constants';
 import { AnimatePresence } from 'framer-motion';
 import { supabase } from './lib/supabase';
 
@@ -24,7 +24,7 @@ const App: React.FC = () => {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [loading, setLoading] = useState(true);
 
-  // Real Data State
+  // Real Data State initialized to empty
   const [notices, setNotices] = useState<Notice[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
 
@@ -33,7 +33,8 @@ const App: React.FC = () => {
     const initializeApp = async () => {
       try {
         // 1. Check Session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: sessionData } = await (supabase.auth as any).getSession();
+        const session = sessionData?.session;
         if (session) {
           await fetchUserProfile(session.user.id, session.user.email);
         }
@@ -42,7 +43,7 @@ const App: React.FC = () => {
         await Promise.all([fetchNotices(), fetchEvents()]);
         
       } catch (err) {
-        console.error("Initialization failed:", err);
+        console.error("Initialization error:", err);
       } finally {
         setLoading(false);
       }
@@ -51,7 +52,7 @@ const App: React.FC = () => {
     initializeApp();
 
     // Listen for Auth Changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = (supabase.auth as any).onAuthStateChange(async (event: any, session: any) => {
       if (session) {
         if (event === 'SIGNED_IN') {
            setTimeout(() => fetchUserProfile(session.user.id, session.user.email), 500);
@@ -73,16 +74,11 @@ const App: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) {
-        console.error("Error fetching notices:", error.message);
-        // Only fallback to mock data on actual error
-        setNotices(MOCK_NOTICES);
-      } else {
-        // Use real data (even if empty)
-        setNotices(data || []);
-      }
+      if (error) throw error;
+      setNotices(data || []);
     } catch (e) {
-      setNotices(MOCK_NOTICES);
+      console.error("Error fetching notices:", e);
+      setNotices([]);
     }
   };
 
@@ -93,26 +89,23 @@ const App: React.FC = () => {
         .select('*')
         .order('created_at', { ascending: false });
         
-      if (error) {
-         console.error("Error fetching events:", error.message);
-         setEvents(MOCK_EVENTS);
-      } else {
-         // Map DB snake_case to camelCase
-         const mappedEvents = (data || []).map((e: any) => ({
-           id: e.id,
-           title: e.title,
-           description: e.description,
-           date: e.date,
-           location: e.location,
-           organizer: e.organizer,
-           imageUrl: e.image_url,
-           registeredCount: e.registered_count,
-           category: e.category
-         }));
-         setEvents(mappedEvents);
-      }
+      if (error) throw error;
+      
+      const mappedEvents = (data || []).map((e: any) => ({
+        id: e.id,
+        title: e.title,
+        description: e.description,
+        date: e.date,
+        location: e.location,
+        organizer: e.organizer,
+        imageUrl: e.image_url,
+        registeredCount: e.registered_count,
+        category: e.category
+      }));
+      setEvents(mappedEvents);
     } catch (e) {
-      setEvents(MOCK_EVENTS);
+      console.error("Error fetching events:", e);
+      setEvents([]);
     }
   };
 
@@ -124,8 +117,7 @@ const App: React.FC = () => {
         .eq('id', userId)
         .single();
 
-      if (error && retryCount < 3) {
-        // If error is strictly about connection, retry. If 406 or row missing, don't retry.
+      if (error && retryCount < 2) {
         setTimeout(() => fetchUserProfile(userId, email, retryCount + 1), 500);
         return;
       }
@@ -142,7 +134,7 @@ const App: React.FC = () => {
         setCurrentUser(appUser);
       }
     } catch (error) {
-      console.error("Unexpected error fetching profile:", error);
+      console.error("Profile fetch error:", error);
     }
   };
 
@@ -158,44 +150,45 @@ const App: React.FC = () => {
 
   // Create Notice in DB
   const handleAddNotice = async (notice: Notice) => {
-    // Optimistic update
     setNotices(prev => [notice, ...prev]);
 
-    const { error } = await supabase
-        .from('notices')
-        .insert([{
-            title: notice.title,
-            content: notice.content,
-            date: notice.date,
-            category: notice.category
-        }]);
-    
-    if (error) {
-        console.error("Failed to save notice:", error.message);
-        // We don't revert here to keep the UI snappy for the demo
+    try {
+      const { error } = await supabase
+          .from('notices')
+          .insert([{
+              title: notice.title,
+              content: notice.content,
+              date: notice.date,
+              category: notice.category
+          }]);
+      
+      if (error) throw error;
+    } catch (e) {
+      console.error("Notice creation sync error:", e);
     }
   };
 
   // Create Event in DB
   const handleAddEvent = async (event: Event) => {
-    // Optimistic update
     setEvents(prev => [event, ...prev]);
 
-    const { error } = await supabase
-        .from('events')
-        .insert([{
-            title: event.title,
-            description: event.description,
-            date: event.date,
-            location: event.location,
-            organizer: event.organizer,
-            image_url: event.imageUrl,
-            category: event.category,
-            registered_count: 0
-        }]);
+    try {
+      const { error } = await supabase
+          .from('events')
+          .insert([{
+              title: event.title,
+              description: event.description,
+              date: event.date,
+              location: event.location,
+              organizer: event.organizer,
+              image_url: event.imageUrl,
+              category: event.category,
+              registered_count: 0
+          }]);
 
-    if (error) {
-        console.error("Failed to save event:", error.message);
+      if (error) throw error;
+    } catch (e) {
+      console.error("Event creation sync error:", e);
     }
   };
 
@@ -242,35 +235,14 @@ const App: React.FC = () => {
         if (currentUser && (currentUser.role === 'admin' || currentUser.role === 'faculty')) {
            return <Dashboard user={currentUser} />;
         }
-        return (
-          <Home 
-            onNavigate={handleViewChange} 
-            user={currentUser} 
-            notices={notices} 
-            onAddNotice={handleAddNotice} 
-          />
-        );
+        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} />;
       case 'my-club':
         if (currentUser && currentUser.role === 'lead') {
            return <MyClub user={currentUser} />;
         }
-        return (
-          <Home 
-            onNavigate={handleViewChange} 
-            user={currentUser} 
-            notices={notices} 
-            onAddNotice={handleAddNotice} 
-          />
-        );
+        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} />;
       default:
-        return (
-          <Home 
-            onNavigate={handleViewChange} 
-            user={currentUser} 
-            notices={notices} 
-            onAddNotice={handleAddNotice} 
-          />
-        );
+        return <Home onNavigate={handleViewChange} user={currentUser} notices={notices} onAddNotice={handleAddNotice} />;
     }
   };
 
@@ -285,7 +257,7 @@ const App: React.FC = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await (supabase.auth as any).signOut();
     setCurrentUser(null);
     handleViewChange('home');
   };
