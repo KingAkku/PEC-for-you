@@ -77,7 +77,8 @@ const Events: React.FC<EventsProps> = ({ user, events, onAddEvent }) => {
           category: formData.category,
           organizer: formData.organizer || 'Unknown',
           imageUrl: formData.imageUrl,
-          registeredCount: 0
+          registeredCount: 0,
+          clubId: user?.clubId
       };
       
       onAddEvent(newEvent);

@@ -59,7 +59,9 @@ const NoticeBoard: React.FC<NoticeBoardProps> = ({ user, notices, onAddNotice })
       e.preventDefault();
       const newNotice: Notice = {
           id: `temp-${Date.now()}`,
-          ...formData
+          ...formData,
+          clubId: user?.clubId,
+          authorId: user?.id
       };
       onAddNotice(newNotice);
       setIsModalOpen(false);

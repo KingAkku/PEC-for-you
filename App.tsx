@@ -98,6 +98,7 @@ const App: React.FC = () => {
     }
   };
 
+
   const fetchNotices = async () => {
     try {
       const { data, error } = await supabase
@@ -106,7 +107,17 @@ const App: React.FC = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      setNotices(data || []);
+      
+      const mappedNotices = (data || []).map((n: any) => ({
+        id: n.id,
+        title: n.title,
+        content: n.content,
+        date: n.date,
+        category: n.category,
+        clubId: n.club_id,
+        authorId: n.author_id
+      }));
+      setNotices(mappedNotices);
     } catch (e) {
       console.error("Error fetching notices:", e);
       setNotices([]);
@@ -131,7 +142,8 @@ const App: React.FC = () => {
         organizer: e.organizer,
         imageUrl: e.image_url,
         registeredCount: e.registered_count,
-        category: e.category
+        category: e.category,
+        clubId: e.club_id
       }));
       setEvents(mappedEvents);
     } catch (e) {
@@ -188,7 +200,9 @@ const App: React.FC = () => {
               title: notice.title,
               content: notice.content,
               date: notice.date,
-              category: notice.category
+              category: notice.category,
+              club_id: notice.clubId,
+              author_id: notice.authorId
           }]);
       if (error) throw error;
       fetchStats(); // Refresh stats
@@ -210,7 +224,8 @@ const App: React.FC = () => {
               organizer: event.organizer,
               image_url: event.imageUrl,
               category: event.category,
-              registered_count: 0
+              registered_count: 0,
+              club_id: event.clubId
           }]);
       if (error) throw error;
       fetchStats(); // Refresh stats

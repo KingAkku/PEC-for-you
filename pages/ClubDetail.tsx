@@ -25,7 +25,7 @@ const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack, user }) => {
       const { data, error } = await supabase
         .from('events')
         .select('*')
-        .eq('organizer', club.name)
+        .eq('club_id', club.id)
         .order('date', { ascending: true });
       
       if (error) throw error;
@@ -39,7 +39,8 @@ const ClubDetail: React.FC<ClubDetailProps> = ({ club, onBack, user }) => {
         organizer: e.organizer,
         imageUrl: e.image_url,
         registeredCount: e.registered_count,
-        category: e.category
+        category: e.category,
+        clubId: e.club_id
       }));
       
       setClubEvents(mappedEvents);

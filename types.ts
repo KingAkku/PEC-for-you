@@ -16,6 +16,8 @@ export interface Notice {
   content: string;
   date: string;
   category: 'general' | 'exam' | 'event' | 'urgent';
+  clubId?: string;
+  authorId?: string;
 }
 
 export interface Event {
@@ -25,6 +27,7 @@ export interface Event {
   date: string;
   location: string;
   organizer: string;
+  clubId?: string;
   imageUrl?: string;
   registeredCount: number;
   category: 'Technical' | 'Cultural' | 'Workshop' | 'Seminar' | 'Hackathon';
@@ -39,6 +42,21 @@ export interface Club {
   mentor?: string;
   image: string;
   category: string;
+}
+
+export interface Registration {
+  id: string;
+  userId: string;
+  eventId: string;
+  createdAt: string;
+}
+
+export interface Membership {
+  id: string;
+  userId: string;
+  clubId: string;
+  role: string;
+  joinedAt: string;
 }
 
 export interface HeroPopup {
